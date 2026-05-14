@@ -3,119 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sistem Informasi Penelitian FTI - Platform manajemen penelitian Fakultas Teknologi Informasi">
+  <meta name="description" content="Sistem Informasi Penelitian FTI">
   <title>Penelitian FTI - Sistem Informasi Penelitian</title>
-  <!-- Basecoat UI -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
-  <!-- Custom Styles -->
   <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" defer></script>
 </head>
 
-<body style="background-color: var(--color-background); color: var(--color-foreground); min-height: 100vh; display: flex; flex-direction: column;">
-  <nav style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-4) 5%; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-8); position: relative;">
-    <div>
-      <a href="/" class="logo" style="text-decoration: none;">Penelitian FTI</a>
-    </div>
-    
-    <!-- Mobile Toggle Button -->
-    <button class="nav-toggle" aria-label="Toggle navigation" onclick="toggleNav()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
+<body class="<% if (typeof user !== 'undefined' && user) { %>has-sidebar<% } %>">
+
+  <!-- ── TOP NAV ── -->
+  <nav class="topnav">
+    <% if (typeof user !== 'undefined' && user) { %>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    <% } %>
+
+    <a href="/" class="topnav-brand">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
       </svg>
-    </button>
-    
-    <!-- Navigation Links -->
-    <div class="nav-links" id="navLinks" style="display: flex; gap: var(--space-4); align-items: center;">
-      <% if (typeof user !== 'undefined' && user) { %>
-        <a href="/auth/dashboard" class="btn btn-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      Penelitian FTI
+    </a>
+
+    <div class="topnav-spacer"></div>
+
+    <% if (typeof user !== 'undefined' && user) { %>
+
+      <!-- Profile Dropdown -->
+      <div class="profile-dropdown" id="profileDropdown">
+        <button class="profile-btn" onclick="toggleProfile(event)" aria-label="Menu profil">
+          <div class="profile-avatar">
+            <%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %>
+          </div>
+          <span class="profile-name"><%= user.name || user.email || 'Pengguna' %></span>
+          <svg class="profile-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="profile-menu">
+          <div class="pm-header">
+            <div class="pm-name"><%= user.name || 'Pengguna' %></div>
+            <div class="pm-sub"><%= user.email || '' %> &middot; <span class="text-capitalize"><%= user.role || 'user' %></span></div>
+          </div>
+          <a href="/auth/profile" class="pm-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit Profil
+          </a>
+          <div class="pm-divider"></div>
+          <a href="/auth/logout" class="pm-item danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+          </a>
+        </div>
+      </div>
+
+    <% } else if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+
+      <a href="/auth/logout" class="pm-item danger">Logout</a>
+
+    <% } else { %>
+
+      <div class="topnav-guest">
+        <a href="/auth/login" class="btn-nav-login">Masuk</a>
+        <a href="/auth/register" class="btn-nav-register">Daftar</a>
+      </div>
+
+    <% } %>
+  </nav>
+
+  <!-- ── APP BODY ── -->
+  <div class="app-body">
+
+    <% if (typeof user !== 'undefined' && user) { %>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+
+        <span class="sidebar-section-label">Menu</span>
+
+        <a href="/auth/dashboard" class="sidebar-link" data-label="Dashboard">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-          Dashboard
+          <span class="sidebar-link-label">Dashboard</span>
         </a>
 
-        <a href="/penelitian/dashboard" class="btn btn-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="/penelitian/dashboard" class="sidebar-link" data-label="Penelitian FTI">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
           </svg>
-          Penelitian FTI
+          <span class="sidebar-link-label">Penelitian FTI</span>
         </a>
 
-        <a href="/penelitian/my-penelitian" class="btn btn-link">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="/penelitian/my-penelitian" class="sidebar-link" data-label="Data Penelitian">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          Data Penelitian
+          <span class="sidebar-link-label">Data Penelitian</span>
         </a>
 
         <% if (user.role === 'admin') { %>
-          <a href="/auth/users" class="btn btn-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            Kelola User
-          </a>
+        <span class="sidebar-section-label mt">Admin</span>
+        <a href="/auth/users" class="sidebar-link" data-label="Kelola User">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span class="sidebar-link-label">Kelola User</span>
+        </a>
         <% } %>
 
-        <a href="/auth/logout" class="btn btn-destructive">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Logout
-        </a>
+      </nav>
+    </aside>
 
-      <% } else if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-        <a href="/auth/dashboard" class="btn btn-link">Dashboard</a>
-        <a href="/auth/profile" class="btn btn-link">Profil</a>
-        <a href="/auth/logout" class="btn btn-destructive">Logout</a>
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-primary">Login</a>
-        <a href="/auth/register" class="btn btn-primary">Daftar</a>
-      <% } %>
-    </div>
-  </nav>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
-  <main class="container" style="flex: 1; padding-bottom: var(--space-8);">
-  
+    <% } %>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="main-content" id="mainContent">
+
   <script>
-    function toggleNav() {
-      const navLinks = document.getElementById('navLinks');
-      navLinks.classList.toggle('active');
-    }
-    
-    // Close nav on link click (mobile)
-    document.querySelectorAll('.nav-links a').forEach(link => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          document.getElementById('navLinks').classList.remove('active');
-        }
-      });
-    });
-    
-    // Close nav on outside click
-    document.addEventListener('click', (e) => {
-      const nav = document.querySelector('nav');
-      const navLinks = document.getElementById('navLinks');
-      const toggle = document.querySelector('.nav-toggle');
-      
-      if (!nav.contains(e.target) && navLinks.classList.contains('active')) {
-        navLinks.classList.remove('active');
+    const COLLAPSED_KEY = 'sidebar_collapsed';
+
+    function applyCollapse(collapsed) {
+      if (document.body.classList.contains('has-sidebar')) {
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
       }
+    }
+    applyCollapse(localStorage.getItem(COLLAPSED_KEY) === 'true');
+
+    function toggleSidebar() {
+      if (window.innerWidth <= 768) {
+        document.body.classList.toggle('sidebar-mobile-open');
+      } else {
+        const next = !document.body.classList.contains('sidebar-collapsed');
+        applyCollapse(next);
+        localStorage.setItem(COLLAPSED_KEY, next);
+      }
+    }
+
+    function closeMobileSidebar() {
+      document.body.classList.remove('sidebar-mobile-open');
+    }
+
+    function toggleProfile(e) {
+      e.stopPropagation();
+      document.getElementById('profileDropdown')?.classList.toggle('open');
+    }
+
+    document.addEventListener('click', (e) => {
+      const pd = document.getElementById('profileDropdown');
+      if (pd && !pd.contains(e.target)) pd.classList.remove('open');
+    });
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      if (link.getAttribute('href') === window.location.pathname)
+        link.classList.add('active');
     });
   </script>
