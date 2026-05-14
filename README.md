@@ -133,6 +133,13 @@ Setiap anggota harus menambahkan minimal satu fitur yang:
 
 ---
 
+## Default Login Admin
+
+```
+Username : admin@fti.ac.id
+Username : Admin@1234
+```
+
 ## Struktur Project
 
 ```
