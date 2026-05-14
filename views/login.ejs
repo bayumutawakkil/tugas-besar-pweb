@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+
+<div class="flex justify-center items-center" style="min-height: 70vh;">
+  <div class="card animate-fade-in" style="width: 100%; max-width: 450px;">
+    <header>
+      <h2>Masuk ke Akun</h2>
+      <p>Selamat datang! Silakan login untuk mengelola penelitian Anda.</p>
+    </header>
+    <section>
+      
+      <% if (typeof error !== 'undefined' && error) { %>
+        <%- include('partials/_alert', { 
+          type: 'destructive', 
+          title: 'Login Gagal', 
+          message: error 
+        }) %>
+      <% } %>
+      
+      <form action="/auth/login" method="POST" id="loginForm" class="flex flex-col gap-4">
+        <%- include('partials/_input', {
+          inputType: 'email',
+          inputId: 'email',
+          inputName: 'email',
+          inputLabel: 'Alamat Email',
+          inputPlaceholder: 'user@example.com',
+          inputRequired: true
+        }) %>
+        
+        <%- include('partials/_input', {
+          inputType: 'password',
+          inputId: 'password',
+          inputName: 'password',
+          inputLabel: 'Kata Sandi',
+          inputPlaceholder: '••••••••',
+          inputRequired: true,
+          inputHint: 'Minimal 6 karakter'
+        }) %>
+        
+        <button type="submit" class="btn btn-primary w-full btn-lg" style="margin-top: var(--space-2);">
+          <span class="btn-text">Login</span>
+        </button>
+      </form>
+      
+      <hr class="divider">
+      
+      <div class="text-center">
+        <p style="margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm);">
+          Belum punya akun? 
+          <a href="/auth/register" style="color: var(--primary-500); font-weight: 600; text-decoration: none;">Daftar sekarang</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+// Form submission with loading state
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  const btn = this.querySelector('button[type="submit"]');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> <span>Memproses...</span>';
+});
+</script>
+
+<%- include('partials/footer') %>

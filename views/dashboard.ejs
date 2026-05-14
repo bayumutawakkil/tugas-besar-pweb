@@ -1,0 +1,101 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle">Selamat datang di Sistem Informasi Penelitian FTI</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid" style="gap: var(--space-6); margin-bottom: var(--space-8);">
+  <div class="card">
+    <div class="card-body text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto var(--space-4); color: var(--primary);">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <h3 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 0;">0</h3>
+      <p class="text-secondary" style="margin: var(--space-2) 0 0 0;">Total Users</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto var(--space-4); color: var(--primary);">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <h3 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 0;">0</h3>
+      <p class="text-secondary" style="margin: var(--space-2) 0 0 0;">Total Penelitian</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto var(--space-4); color: var(--primary);">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+      </svg>
+      <h3 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 0;">Active</h3>
+      <p class="text-secondary" style="margin: var(--space-2) 0 0 0;">System Status</p>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome Card -->
+<div class="card " style="margin-bottom: var(--space-6); padding: 2em;">
+  <div class="card-header">
+    <h3 class="card-title">Selamat Datang di Sistem Informasi Penelitian FTI</h3>
+  </div>
+  <div class="card-body ">
+    <p style="margin-bottom: var(--space-4); color: var(--text-secondary);">
+      Platform manajemen penelitian untuk Fakultas Teknologi Informasi yang memudahkan dosen dalam mengelola penelitian, anggota tim, dan kolaborasi.
+    </p>
+    <p style="margin-bottom: var(--space-4); color: var(--text-secondary);">
+      Dashboard ini menampilkan ringkasan penelitian dan statistik aktivitas penelitian di FTI.
+    </p>
+    
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>Beberapa fitur sedang dalam pengembangan dan akan segera tersedia.</span>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card" style="padding:  2em;">
+  <div class="card-header">
+    <h3 class="card-title">Quick Actions</h3>
+  </div>
+  <div class="card-body">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+      <!-- <a href="/auth/profile" class="btn btn-secondary" style="width: 100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        View Profile
+      </a> -->
+      
+      <!-- <a href="/penelitian/dashboard" class="btn btn-secondary" style="width: 100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        Penelitian
+      </a> -->
+      
+      <a href="/" class="btn btn-secondary" style="width: 100%;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        Back to Home
+      </a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

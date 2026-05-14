@@ -1,0 +1,74 @@
+<%- include('partials/header') %>
+
+<div class="flex justify-center items-center" style="min-height: 70vh;">
+  <div class="card animate-fade-in" style="width: 100%; max-width: 450px;">
+    <header>
+      <h2>Buat Akun Baru</h2>
+      <p>Bergabunglah dengan Sistem Penelitian FTI dan kelola penelitian Anda dengan mudah.</p>
+    </header>
+    <section>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <%- include('partials/_alert', { 
+          type: 'destructive', 
+          title: 'Pendaftaran Gagal', 
+          message: error 
+        }) %>
+      <% } %>
+      
+      <form action="/auth/register" method="POST" id="registerForm" class="flex flex-col gap-4">
+        <%- include('partials/_input', {
+          inputType: 'text',
+          inputId: 'name',
+          inputName: 'name',
+          inputLabel: 'Nama Lengkap',
+          inputPlaceholder: 'John Doe',
+          inputRequired: true
+        }) %>
+        
+        <%- include('partials/_input', {
+          inputType: 'email',
+          inputId: 'email',
+          inputName: 'email',
+          inputLabel: 'Alamat Email',
+          inputPlaceholder: 'user@example.com',
+          inputRequired: true
+        }) %>
+        
+        <%- include('partials/_input', {
+          inputType: 'password',
+          inputId: 'password',
+          inputName: 'password',
+          inputLabel: 'Kata Sandi',
+          inputPlaceholder: 'Minimal 6 karakter',
+          inputRequired: true,
+          inputHint: 'Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal'
+        }) %>
+        
+        <button type="submit" class="btn btn-primary w-full btn-lg" style="margin-top: var(--space-2);">
+          <span class="btn-text">Daftar Akun</span>
+        </button>
+      </form>
+      
+      <hr class="divider">
+      
+      <div class="text-center">
+        <p style="margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm);">
+          Sudah punya akun? 
+          <a href="/auth/login" style="color: var(--primary-500); font-weight: 600; text-decoration: none;">Login di sini</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+// Form submission with loading state
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  const btn = this.querySelector('button[type="submit"]');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> <span>Memproses...</span>';
+});
+</script>
+
+<%- include('partials/footer') %>

@@ -160,12 +160,11 @@ tugas-besar-pweb/
 
 | No | Nama Anggota | Modul/Fitur | Status |
 |-----|---|---|---|
-| 1 | [Nama] | [Modul] | [ ] |
-| 2 | [Nama] | [Modul] | [ ] |
-| 3 | [Nama] | [Modul] | [ ] |
-| 4 | [Nama] | [Modul] | [ ] |
+| 1 | [Bayu MUtawakkil] | [Modul 1] | [Aktif] |
+| 2 | [Tata Haryadi Jayamahe] | [Modul 2, 3] | [Aktif] |
 
-*Setiap anggota wajib memiliki kontribusi yang tercermin dalam Git commit history*
+
+
 
 ---
 

@@ -1,0 +1,43 @@
+<%
+/**
+ * Reusable Input Field Component
+ * @param {string} type - Input type (text, email, password, etc.)
+ * @param {string} id - Input ID
+ * @param {string} name - Input name
+ * @param {string} label - Field label
+ * @param {string} placeholder - Placeholder text
+ * @param {boolean} required - Is field required
+ * @param {string} hint - Helper text below input
+ * @param {string} value - Default value
+ */
+const inputType = locals.inputType || 'text';
+const inputId = locals.inputId || '';
+const inputName = locals.inputName || '';
+const inputLabel = locals.inputLabel || '';
+const inputPlaceholder = locals.inputPlaceholder || '';
+const inputRequired = locals.inputRequired || false;
+const inputHint = locals.inputHint || '';
+const inputValue = locals.inputValue || '';
+%>
+
+<div class="field">
+  <label for="<%= inputId %>">
+    <%= inputLabel %>
+    <% if (inputRequired) { %>
+      <span class="required" aria-label="required">*</span>
+    <% } %>
+  </label>
+  <input 
+    type="<%= inputType %>" 
+    id="<%= inputId %>" 
+    name="<%= inputName %>" 
+    class="input" 
+    placeholder="<%= inputPlaceholder %>" 
+    <% if (inputRequired) { %>required<% } %>
+    <% if (inputValue) { %>value="<%= inputValue %>"<% } %>
+    aria-describedby="<%= inputId %>-hint"
+  >
+  <% if (inputHint) { %>
+    <small id="<%= inputId %>-hint" class="field-hint"><%= inputHint %></small>
+  <% } %>
+</div>

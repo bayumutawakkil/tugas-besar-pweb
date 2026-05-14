@@ -1,0 +1,32 @@
+<%- include('partials/header') %>
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+  <div class="card animate-fade-in" style="width: 100%; max-width: 500px;">
+    <header style="text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+      <h2>Terjadi Kesalahan</h2>
+      <p>Sistem kami sedang mengalami masalah</p>
+    </header>
+    <section>
+      <div class="alert-destructive" style="display: block;">
+        <div>
+          <h3 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">Pesan Error</h3>
+          <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">
+            <%= typeof message !== 'undefined' ? message : 'Maaf, terjadi kesalahan pada sistem kami. Silakan coba beberapa saat lagi.' %>
+          </p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+        <a href="/" class="btn btn-primary" style="text-align: center; width: 100%;">🏠 Kembali ke Beranda</a>
+        <button onclick="history.back()" class="btn btn-secondary" style="text-align: center; width: 100%;">← Halaman Sebelumnya</button>
+      </div>
+
+      <p style="margin-top: 2rem; text-align: center; color: var(--color-muted-foreground); font-size: 0.875rem;">
+        Jika masalah berlanjut, silakan hubungi administrator sistem.
+      </p>
+    </section>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

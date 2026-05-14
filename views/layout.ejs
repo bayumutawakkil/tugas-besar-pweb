@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusAuth - Tugas Besar PWEB</title>
+  <!-- Basecoat UI -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" defer></script>
+</head>
+<body style="background-color: var(--color-background); color: var(--color-foreground);">
+  <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 5%; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem;">
+    <div>
+      <a href="/" style="font-size: 1.25rem; font-weight: bold; text-decoration: none; color: inherit;">NexusAuth</a>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <% if (typeof user !== 'undefined' && user) { %>
+        <a href="/auth/profile" class="btn btn-link">Profil</a>
+        <% if (user.role === 'admin') { %>
+          <a href="/auth/users" class="btn btn-link">Kelola User</a>
+        <% } %>
+        <a href="/auth/logout" class="btn btn-destructive">Logout</a>
+      <% } else if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+        <a href="/auth/profile" class="btn btn-link">Profil</a>
+        <a href="/auth/logout" class="btn btn-destructive">Logout</a>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-primary">Login</a>
+        <a href="/auth/register" class="btn btn-primary">Daftar</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
+    <%- body %>
+  </main>
+</body>
+</html>
