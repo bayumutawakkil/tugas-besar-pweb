@@ -1,11 +1,18 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { JWT_SECRET, checkAuth, getUser, createUser, getAllUsers } = require('../config');
+const {
+  JWT_SECRET,
+  checkAuth,
+  getUser,
+  createUser,
+  getAllUsers,
+  updateUserRole,
+} = require('../config');
+const { checkRole, ROLES } = require('../middleware/accessControlList');
 
 const router = express.Router();
 
-// ===== RENDER FORMS =====
 router.get('/register', (req, res) => {
   if (req.cookies.token) return res.redirect('/auth/dashboard');
   res.render('register', { error: null });
@@ -16,7 +23,6 @@ router.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-// ===== REGISTER =====
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -30,7 +36,7 @@ router.post('/register', async (req, res) => {
       return res.render('register', { error: 'Email sudah terdaftar' });
     }
 
-    await createUser(email, password, name);
+    await createUser(email, password, name, ROLES.ANGGOTA);
     res.redirect('/auth/login');
   } catch (err) {
     console.error(err);
@@ -38,7 +44,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ===== LOGIN =====
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -58,12 +63,16 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role || ROLES.ANGGOTA },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
     res.redirect('/auth/dashboard');
   } catch (err) {
     console.error(err);
@@ -71,13 +80,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ===== LOGOUT =====
 router.get('/logout', (req, res) => {
   res.clearCookie('token');
   res.redirect('/');
 });
 
-// ===== GET DASHBOARD (Protected) =====
 router.get('/dashboard', checkAuth, async (req, res) => {
   try {
     const user = await getUser(req.user.email);
@@ -87,7 +94,6 @@ router.get('/dashboard', checkAuth, async (req, res) => {
   }
 });
 
-// ===== GET Page rusak (Protected) =====
 router.get('/pagenotfound', checkAuth, async (req, res) => {
   try {
     const user = await getUser(req.user.email);
@@ -97,23 +103,34 @@ router.get('/pagenotfound', checkAuth, async (req, res) => {
   }
 });
 
+router.get('/users', checkAuth, checkRole(ROLES.ADMIN), async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.render('admin/users', { user: req.user, users });
+  } catch (err) {
+    res.status(500).render('error', { message: 'Gagal memuat daftar pengguna.' });
+  }
+});
 
-// ===== UPDATE USER ROLE (Admin Only) =====
-router.post('/users/role', checkAuth, checkRole('admin'), async (req, res) => {
+router.post('/users/role', checkAuth, checkRole(ROLES.ADMIN), async (req, res) => {
   try {
     const { userId, role } = req.body;
 
     if (!userId || !role) {
-      return res.status(400).send('userId dan role harus diisi');
+      return res.status(400).render('error', { message: 'userId dan role harus diisi.' });
     }
 
-    if (!['user', 'moderator', 'admin'].includes(role)) {
-      return res.status(400).send('Role tidak valid');
+    const validRoles = Object.values(ROLES);
+    if (!validRoles.includes(role)) {
+      return res.status(400).render('error', {
+        message: `Role tidak valid. Pilih salah satu: ${validRoles.join(', ')}.`,
+      });
     }
 
     await updateUserRole(userId, role);
     res.redirect('/auth/users');
   } catch (err) {
+    console.error(err);
     res.status(500).render('error', { message: 'Gagal memperbarui peran pengguna.' });
   }
 });
