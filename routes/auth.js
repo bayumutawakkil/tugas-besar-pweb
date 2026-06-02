@@ -5,11 +5,11 @@ const {
   JWT_SECRET,
   checkAuth,
   getUser,
+  getUserById,
   createUser,
-  getAllUsers,
-  updateUserRole,
+  updateUserProfile,
 } = require('../config');
-const { checkRole, ROLES } = require('../middleware/accessControlList');
+const { ROLES } = require('../middleware/accessControlList');
 
 const router = express.Router();
 
@@ -109,35 +109,63 @@ router.get('/pagenotfound', checkAuth, async (req, res) => {
   }
 });
 
-router.get('/users', checkAuth, checkRole(ROLES.ADMIN), async (req, res) => {
+router.get('/users', checkAuth, async (req, res) => {
+  const user = await getUser(req.user.email);
+  res.render('pagenotfound', { user });
+});
+
+router.get('/profile', checkAuth, async (req, res) => {
   try {
-    const users = await getAllUsers();
-    res.render('admin/users', { user: req.user, users });
+    const user = await getUserById(req.user.id);
+    res.render('profile', { user, error: null, success: null });
   } catch (err) {
-    res.status(500).render('error', { message: 'Gagal memuat daftar pengguna.' });
+    res.status(500).render('error', { message: 'Gagal memuat halaman profil.' });
   }
 });
 
-router.post('/users/role', checkAuth, checkRole(ROLES.ADMIN), async (req, res) => {
+router.post('/profile', checkAuth, async (req, res) => {
   try {
-    const { userId, role } = req.body;
+    const { name, email, password, password_confirm } = req.body;
+    const user = await getUserById(req.user.id);
 
-    if (!userId || !role) {
-      return res.status(400).render('error', { message: 'userId dan role harus diisi.' });
+    if (!name || !email) {
+      return res.render('profile', { user, error: 'Nama dan email harus diisi.', success: null });
     }
 
-    const validRoles = Object.values(ROLES);
-    if (!validRoles.includes(role)) {
-      return res.status(400).render('error', {
-        message: `Role tidak valid. Pilih salah satu: ${validRoles.join(', ')}.`,
-      });
+    if (email !== user.email) {
+      const existing = await getUser(email);
+      if (existing && existing.id !== user.id) {
+        return res.render('profile', { user, error: 'Email sudah digunakan akun lain.', success: null });
+      }
     }
 
-    await updateUserRole(userId, role);
-    res.redirect('/auth/users');
+    if (password) {
+      if (password.length < 6) {
+        return res.render('profile', { user, error: 'Password minimal 6 karakter.', success: null });
+      }
+      if (password !== password_confirm) {
+        return res.render('profile', { user, error: 'Konfirmasi password tidak cocok.', success: null });
+      }
+    }
+
+    await updateUserProfile(user.id, { name, email, password: password || null });
+
+    const newToken = jwt.sign(
+      { id: user.id, email, role: user.role || ROLES.ANGGOTA },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    const updatedUser = await getUserById(user.id);
+    res.render('profile', { user: updatedUser, error: null, success: 'Profil berhasil diperbarui!' });
   } catch (err) {
     console.error(err);
-    res.status(500).render('error', { message: 'Gagal memperbarui peran pengguna.' });
+    res.status(500).render('error', { message: 'Gagal memperbarui profil.' });
   }
 });
 

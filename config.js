@@ -82,12 +82,45 @@ const updateUserRole = async (userId, role) => {
   }
 };
 
+const updateUserProfile = async (userId, { name, email, password }) => {
+  const conn = await pool.getConnection();
+  try {
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await conn.execute(
+        'UPDATE users SET name = ?, email = ?, password = ?, updated_at = NOW() WHERE id = ?',
+        [name, email, hashedPassword, userId]
+      );
+    } else {
+      await conn.execute(
+        'UPDATE users SET name = ?, email = ?, updated_at = NOW() WHERE id = ?',
+        [name, email, userId]
+      );
+    }
+    return true;
+  } finally {
+    conn.release();
+  }
+};
+
+const getUserById = async (id) => {
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.execute('SELECT * FROM users WHERE id = ?', [id]);
+    return rows[0] || null;
+  } finally {
+    conn.release();
+  }
+};
+
 module.exports = {
   pool,
   JWT_SECRET,
   checkAuth,
   getUser,
+  getUserById,
   createUser,
   getAllUsers,
   updateUserRole,
+  updateUserProfile,
 };

@@ -1814,3 +1814,149 @@ body.has-sidebar.sidebar-collapsed .main-content { margin-left: 60px; }
 }
 -e 
 .text-capitalize { text-transform: capitalize; }
+
+/* ===== PAGE NOT FOUND (404) ===== */
+
+/* Illustration */
+.pnf-illustration {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 2rem;
+}
+
+.pnf-circle-bg {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: #eff6ff;
+  border: 2px dashed #bfdbfe;
+  animation: pnf-spin-slow 18s linear infinite;
+}
+
+.pnf-icon-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pnf-icon-wrap svg {
+  color: var(--primary);
+  filter: drop-shadow(0 2px 6px rgba(37, 99, 235, 0.2));
+}
+
+@keyframes pnf-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Badge dot blink (khusus pagenotfound) */
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pnf-blink 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pnf-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+/* Progress bar */
+.pnf-progress-wrap {
+  margin-bottom: 2rem;
+}
+
+.pnf-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: #9ca3af;
+  margin-bottom: var(--space-2);
+}
+
+.pnf-progress-label span:last-child {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.pnf-progress-track {
+  height: 7px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pnf-progress-fill {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
+  border-radius: 999px;
+  animation: pnf-shimmer 2.2s ease-in-out infinite;
+  transform-origin: left;
+}
+
+@keyframes pnf-shimmer {
+  0%   { opacity: 1; transform: scaleX(1); }
+  50%  { opacity: 0.65; transform: scaleX(0.92); }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+
+/* Button row */
+.btn-row {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Footer note */
+.footer-note {
+  margin-top: var(--space-8);
+  font-size: var(--text-xs);
+  color: #d1d5db;
+}
+
+.footer-note a {
+  color: #9ca3af;
+  text-decoration: none;
+}
+
+.footer-note a:hover {
+  color: var(--primary);
+}
+
+/* Page not found card override — centered full-page layout */
+.pnf-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-6);
+  background: var(--bg-app);
+}
+
+.pnf-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 40px -8px rgba(0, 0, 0, 0.12), 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+  padding: var(--space-12) var(--space-10);
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .pnf-card {
+    padding: var(--space-8) var(--space-6);
+  }
+}
+
+/* ===== END PAGE NOT FOUND ===== */
