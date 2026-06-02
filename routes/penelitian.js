@@ -30,24 +30,13 @@ const {
 } = require('../config/penelitian');
 
 router.get('/dashboard', checkAuth, async (req, res) => {
-  try {
-    const penelitianList = await getAllPenelitian();
-    res.render('penelitian/dashboard', { user: req.user, penelitianList });
-  } catch (err) {
-    console.error('Error loading dashboard:', err);
-    res.status(500).render('error', { message: 'Gagal memuat dashboard penelitian' });
-  }
+  res.render('pagenotfound', { user: req.user });
 });
 
 router.get('/my-penelitian', checkAuth, async (req, res) => {
-  try {
-    const penelitianList = await getPenelitianByDosenId(req.user.id);
-    res.render('penelitian/my-penelitian', { user: req.user, penelitianList });
-  } catch (err) {
-    console.error('Error loading my penelitian:', err);
-    res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda' });
-  }
+  res.render('pagenotfound', { user: req.user });
 });
+
 
 router.get('/search', checkAuth, async (req, res) => {
   try {
