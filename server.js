@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const routes = require('./route');
 const authRoutes = require('./routes/auth'); // RESTORED - Fitur dikembalikan
+const penelitianRoutes = require('./routes/penelitian');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ===== ROUTES =====
 app.use('/', routes);
 app.use('/auth', authRoutes); // RESTORED - Fitur dikembalikan
-app.use('/penelitian', require('./routes/penelitian')); // RESTORED - Fitur dikembalikan
+app.use('/penelitian', penelitianRoutes);
 
 // ===== ERROR HANDLER =====
 app.use((req, res) => {
