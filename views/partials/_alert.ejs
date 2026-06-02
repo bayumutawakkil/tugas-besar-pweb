@@ -1,6 +1,6 @@
 <%
 /**
- * Reusable Alert Component
+ * Toast Alert Component
  * @param {string} type - 'destructive', 'success', 'warning', 'info'
  * @param {string} title - Alert title
  * @param {string} message - Alert message
@@ -8,10 +8,11 @@
 const alertType = locals.type || 'info';
 const alertTitle = locals.title || 'Notification';
 const alertMessage = locals.message || '';
+const toastId = 'toast-' + Math.random().toString(36).substr(2, 9);
 %>
 
-<div class="alert alert-<%= alertType %>" role="alert">
-  <div class="alert-icon">
+<div class="toast toast-<%= alertType %>" id="<%= toastId %>" role="alert" aria-live="polite">
+  <div class="toast-icon">
     <% if (alertType === 'destructive') { %>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -37,8 +38,43 @@ const alertMessage = locals.message || '';
       </svg>
     <% } %>
   </div>
-  <div class="alert-content">
-    <h3><%= alertTitle %></h3>
+  <div class="toast-content">
+    <h4><%= alertTitle %></h4>
     <p><%= alertMessage %></p>
   </div>
+  <button class="toast-close" onclick="dismissToast('<%= toastId %>')" aria-label="Tutup">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  </button>
+  <div class="toast-progress"></div>
 </div>
+
+<script>
+(function() {
+  var id = '<%= toastId %>';
+  var duration = <%= (alertType === 'destructive') ? 6000 : 4500 %>;
+
+  if (!window.dismissToast) {
+    window.dismissToast = function(toastId) {
+      var el = document.getElementById(toastId);
+      if (!el) return;
+      el.classList.add('toast-hiding');
+      setTimeout(function() { if (el) el.remove(); }, 400);
+    };
+  }
+
+  setTimeout(function() { window.dismissToast(id); }, duration);
+
+  var el = document.getElementById(id);
+  if (el) {
+    var bar = el.querySelector('.toast-progress');
+    if (bar) {
+      bar.style.transition = 'width ' + duration + 'ms linear';
+      setTimeout(function() { bar.style.width = '0%'; }, 50);
+    }
+    setTimeout(function() { el.classList.add('toast-visible'); }, 10);
+  }
+})();
+</script>

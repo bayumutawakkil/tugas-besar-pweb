@@ -1,5 +1,22 @@
 <%- include('partials/header') %>
 
+<div class="toast-container" id="toast-container">
+  <% if (typeof error !== 'undefined' && error) { %>
+    <%- include('partials/_alert', { 
+      type: 'destructive', 
+      title: 'Pendaftaran Gagal', 
+      message: error 
+    }) %>
+  <% } %>
+  <% if (typeof success !== 'undefined' && success) { %>
+    <%- include('partials/_alert', { 
+      type: 'success', 
+      title: 'Registrasi Berhasil', 
+      message: success 
+    }) %>
+  <% } %>
+</div>
+
 <div class="flex justify-center items-center" style="min-height: 70vh;">
   <div class="card animate-fade-in" style="width: 100%; max-width: 450px;">
     <header>
@@ -7,14 +24,6 @@
       <p>Bergabunglah dengan Sistem Penelitian FTI dan kelola penelitian Anda dengan mudah.</p>
     </header>
     <section>
-      <% if (typeof error !== 'undefined' && error) { %>
-        <%- include('partials/_alert', { 
-          type: 'destructive', 
-          title: 'Pendaftaran Gagal', 
-          message: error 
-        }) %>
-      <% } %>
-      
       <form action="/auth/register" method="POST" id="registerForm" class="flex flex-col gap-4">
         <%- include('partials/_input', {
           inputType: 'text',
@@ -62,7 +71,6 @@
 </div>
 
 <script>
-// Form submission with loading state
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   const btn = this.querySelector('button[type="submit"]');
   btn.classList.add('loading');

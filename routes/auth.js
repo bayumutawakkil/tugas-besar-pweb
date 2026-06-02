@@ -15,12 +15,13 @@ const router = express.Router();
 
 router.get('/register', (req, res) => {
   if (req.cookies.token) return res.redirect('/auth/dashboard');
-  res.render('register', { error: null });
+  res.render('register', { error: null, success: null });
 });
 
 router.get('/login', (req, res) => {
   if (req.cookies.token) return res.redirect('/auth/dashboard');
-  res.render('login', { error: null });
+  const success = req.query.registered === '1' ? 'Registrasi berhasil! Silakan login dengan akun Anda.' : null;
+  res.render('login', { error: null, success });
 });
 
 router.post('/register', async (req, res) => {
@@ -37,7 +38,7 @@ router.post('/register', async (req, res) => {
     }
 
     await createUser(email, password, name, ROLES.ANGGOTA);
-    res.redirect('/auth/login');
+    res.redirect('/auth/login?registered=1');
   } catch (err) {
     console.error(err);
     res.status(500).render('error', { message: 'Terjadi kesalahan pada server saat mendaftar.' });
@@ -71,6 +72,11 @@ router.post('/login', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+    res.cookie('toast_success', 'Login berhasil! Selamat datang kembali.', {
+      httpOnly: false,
+      maxAge: 5000,
       sameSite: 'lax',
     });
     res.redirect('/auth/dashboard');
