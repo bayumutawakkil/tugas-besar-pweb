@@ -1,0 +1,255 @@
+<%- include('../partials/header') %>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toast-container">
+  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
+    <%- include('../partials/_alert', {
+      type:    flashType === 'success' ? 'success' : 'destructive',
+      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
+      message: flashMsg
+    }) %>
+  <% } %>
+</div>
+
+<!-- Breadcrumb -->
+<nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
+  <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
+  &rsaquo; Detail
+</nav>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:1.25rem; align-items:start;">
+
+  <!-- ── KOLOM KIRI: Info Utama ──────────────────────────────── -->
+  <div>
+    <div class="card" style="padding:2rem; margin-bottom:1.25rem;">
+
+      <!-- Header Kartu -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; gap:1rem;">
+        <div>
+          <h2 style="margin:0 0 0.4rem;"><%= penelitian.judul %></h2>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <%- include('../partials/_badge-status', { status: penelitian.status }) %>
+            <span style="font-size:0.82rem; color:var(--color-muted-foreground);">
+              ID #<%= penelitian.id %>
+            </span>
+          </div>
+        </div>
+
+        <% if (isKetua || isAdmin) { %>
+          <div style="display:flex; gap:0.5rem; flex-shrink:0;">
+            <a href="/penelitian/<%= penelitian.id %>/edit" class="btn btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </a>
+            <button
+              type="button"
+              class="btn btn-destructive"
+              onclick="confirmDelete()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+              Hapus
+            </button>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Info Grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1.5rem; margin-bottom:1.25rem;">
+        <div>
+          <p style="margin:0; font-size:0.78rem; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.05em;">Ketua Penelitian</p>
+          <p style="margin:0.2rem 0 0; font-weight:600;"><%= penelitian.ketua_name || '-' %></p>
+          <p style="margin:0; font-size:0.82rem; color:var(--color-muted-foreground);"><%= penelitian.ketua_email || '' %></p>
+        </div>
+        <div>
+          <p style="margin:0; font-size:0.78rem; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.05em;">Periode</p>
+          <p style="margin:0.2rem 0 0; font-weight:600;">
+            <%= penelitian.tahun_mulai %>
+            <% if (penelitian.tahun_selesai) { %>– <%= penelitian.tahun_selesai %><% } else { %>– sekarang<% } %>
+          </p>
+        </div>
+        <div>
+          <p style="margin:0; font-size:0.78rem; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.05em;">Dibuat</p>
+          <p style="margin:0.2rem 0 0;">
+            <%= new Date(penelitian.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) %>
+          </p>
+        </div>
+        <div>
+          <p style="margin:0; font-size:0.78rem; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.05em;">Diperbarui</p>
+          <p style="margin:0.2rem 0 0;">
+            <%= new Date(penelitian.updated_at).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Deskripsi -->
+      <div>
+        <p style="margin:0 0 0.4rem; font-size:0.78rem; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.05em;">Deskripsi / Abstrak</p>
+        <p style="margin:0; line-height:1.7; color:var(--color-foreground);">
+          <% if (penelitian.deskripsi) { %>
+            <%= penelitian.deskripsi %>
+          <% } else { %>
+            <em style="color:var(--color-muted-foreground);">Belum ada deskripsi.</em>
+          <% } %>
+        </p>
+      </div>
+    </div>
+
+    <!-- Tabel Anggota -->
+    <div class="card" style="padding:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="margin:0;">Tim Penelitian</h3>
+        <% if (isKetua || isAdmin) { %>
+          <a href="/penelitian/<%= penelitian.id %>/anggota" class="btn btn-secondary" style="font-size:0.85rem;">
+            Kelola Anggota
+          </a>
+        <% } %>
+      </div>
+
+      <% if (anggotaList.length === 0) { %>
+        <p style="text-align:center; color:var(--color-muted-foreground); padding:1rem 0;">
+          Belum ada anggota terdaftar.
+        </p>
+      <% } else { %>
+        <div style="overflow-x:auto;">
+          <table class="table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Email</th>
+                <th style="text-align:center;">Peran</th>
+                <th style="text-align:center;">Status</th>
+                <% if (!isKetua && !isAdmin) { %>
+                  <th style="text-align:center;">Aksi</th>
+                <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% anggotaList.forEach(a => { %>
+                <tr>
+                  <td><%= a.dosen_name || '-' %></td>
+                  <td style="font-size:0.82rem; color:var(--color-muted-foreground);"><%= a.dosen_email || '-' %></td>
+                  <td style="text-align:center;">
+                    <span class="badge <%= a.role === 'Ketua' ? 'badge-blue' : 'badge-gray' %>">
+                      <%= a.role %>
+                    </span>
+                  </td>
+                  <td style="text-align:center;">
+                    <% if (a.status === 'approved') { %>
+                      <span class="badge badge-green">Diterima</span>
+                    <% } else if (a.status === 'rejected') { %>
+                      <span class="badge badge-red">Ditolak</span>
+                    <% } else { %>
+                      <span class="badge badge-yellow">Menunggu</span>
+                    <% } %>
+                  </td>
+                  <% if (!isKetua && !isAdmin && Number(a.dosen_id) === Number(user.id) && a.status === 'pending') { %>
+                    <td style="text-align:center;">
+                      <form method="POST" action="/penelitian/<%= penelitian.id %>/membership/update"
+                            style="display:inline; gap:0.3rem; display:flex; justify-content:center;">
+                        <button name="status" value="approved" class="btn btn-primary"
+                                style="padding:0.2rem 0.5rem; font-size:0.78rem;">Terima</button>
+                        <button name="status" value="rejected" class="btn btn-destructive"
+                                style="padding:0.2rem 0.5rem; font-size:0.78rem;">Tolak</button>
+                      </form>
+                    </td>
+                  <% } %>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ── KOLOM KANAN: Sidebar Aksi ────────────────────────────── -->
+  <div>
+    <!-- Ekspor -->
+    <div class="card" style="padding:1.25rem; margin-bottom:1rem;">
+      <h4 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-muted-foreground);">Ekspor Data</h4>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <a href="/penelitian/export/excel" class="btn btn-secondary" style="width:100%; justify-content:flex-start;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Unduh Excel (.xlsx)
+        </a>
+        <a href="/penelitian/export/pdf" class="btn btn-secondary" style="width:100%; justify-content:flex-start;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Unduh PDF
+        </a>
+      </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="card" style="padding:1.25rem;">
+      <h4 style="margin:0 0 0.75rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-muted-foreground);">Statistik</h4>
+      <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--color-muted-foreground);">Total Anggota</span>
+          <strong><%= anggotaList.length %></strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--color-muted-foreground);">Anggota Aktif</span>
+          <strong><%= anggotaList.filter(a => a.status === 'approved').length %></strong>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--color-muted-foreground);">Menunggu</span>
+          <strong><%= anggotaList.filter(a => a.status === 'pending').length %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div id="modal-delete" style="
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+  <div class="card" style="max-width:440px; width:90%; padding:1.5rem;">
+    <h3 style="margin:0 0 0.75rem;">Konfirmasi Hapus</h3>
+    <p style="margin:0 0 1.25rem; color:var(--color-muted-foreground);">
+      Apakah Anda yakin ingin menghapus penelitian
+      <strong>"<%= penelitian.judul %>"</strong>?
+      Semua data anggota terkait akan ikut terhapus. Tindakan ini <strong>tidak dapat dibatalkan</strong>.
+    </p>
+    <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+      <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+      <form method="POST" action="/penelitian/<%= penelitian.id %>/delete">
+        <button type="submit" class="btn btn-destructive">Ya, Hapus Permanen</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDelete() {
+  const modal = document.getElementById('modal-delete');
+  modal.style.display = 'flex';
+}
+function closeDeleteModal() {
+  document.getElementById('modal-delete').style.display = 'none';
+}
+document.getElementById('modal-delete').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+</script>
+
+<%- include('../partials/footer') %>
