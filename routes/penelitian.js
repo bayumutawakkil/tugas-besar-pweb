@@ -30,11 +30,21 @@ const {
 } = require('../config/penelitian');
 
 router.get('/dashboard', checkAuth, async (req, res) => {
-  res.render('pagenotfound', { user: req.user });
+  try {
+    const penelitianList = await getAllPenelitian();
+    res.render('penelitian/dashboard', { user: req.user, penelitianList });
+  } catch (err) {
+    res.status(500).render('error', { message: 'Gagal memuat dashboard penelitian' });
+  }
 });
 
 router.get('/my-penelitian', checkAuth, async (req, res) => {
-  res.render('pagenotfound', { user: req.user });
+  try {
+    const penelitianList = await getPenelitianByDosenId(req.user.id);
+    res.render('penelitian/my-penelitian', { user: req.user, penelitianList });
+  } catch (err) {
+    res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda' });
+  }
 });
 
 
@@ -86,7 +96,7 @@ router.post(
       };
 
       const penelitianId = await createPenelitian(data);
-      res.redirect(`/penelitian/${penelitianId}`);
+      res.redirect('/penelitian/my-penelitian');
     } catch (err) {
       console.error('Error creating penelitian:', err);
       res.render('penelitian/create', {
@@ -163,7 +173,7 @@ router.post(
       const success = await updatePenelitian(penelitianId, data);
       if (!success) throw new Error('Gagal mengupdate penelitian');
 
-      res.redirect(`/penelitian/${penelitianId}`);
+      res.redirect('/penelitian/my-penelitian');
     } catch (err) {
       console.error('Error updating penelitian:', err);
       const penelitian = await getPenelitianById(req.params.id);
@@ -294,7 +304,7 @@ router.post(
       const success = await updateStatusAnggota(penelitianId, req.user.id, status);
       if (!success) throw new Error('Gagal mengupdate status keanggotaan');
 
-      res.redirect(`/penelitian/${penelitianId}`);
+      res.redirect('/penelitian/my-penelitian');
     } catch (err) {
       console.error('Error updating membership:', err);
       res.status(500).json({ error: 'Gagal mengupdate status keanggotaan. ' + err.message });

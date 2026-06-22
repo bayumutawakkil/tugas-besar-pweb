@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1 class="page-title">Penelitian FTI</h1>
+    <p class="page-subtitle">Daftar semua penelitian yang tersedia</p>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="padding:1.5em; margin-bottom:20px;">
+    <form action="/penelitian/search" method="GET">
+        <div style="display:flex; gap:10px;">
+            <input type="text" name="q" class="form-control"
+                placeholder="Cari judul, deskripsi, atau nama ketua..." style="flex:1;">
+            <button type="submit" class="btn btn-primary">Cari</button>
+        </div>
+    </form>
+</div>
+
+<!-- Tombol Buat Penelitian (hanya dosen/admin) -->
+<% if(user.role === 'dosen' || user.role === 'admin'){ %>
+<div style="margin-bottom:20px;">
+    <a href="/penelitian/create" class="btn btn-primary" style="color:#fff;">+ Buat Penelitian</a>
+</div>
+<% } %>
+
+<% if(penelitianList && penelitianList.length > 0){ %>
+    <% penelitianList.forEach(p => { %>
+    <div class="card" style="padding:1.5em; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h3 style="margin:0 0 6px 0;">
+                    <a href="/penelitian/<%= p.id %>" style="text-decoration:none; color:inherit;">
+                        <%= p.judul %>
+                    </a>
+                </h3>
+                <p style="color:#6b7280; margin:0 0 8px 0; font-size:0.9em;">
+                    Ketua: <strong><%= p.ketua_name %></strong>
+                    &middot; <%= p.tahun_mulai %><%= p.tahun_selesai ? ' - ' + p.tahun_selesai : '' %>
+                </p>
+                <p style="color:#374151; margin:0; font-size:0.9em;">
+                    <%= p.deskripsi ? p.deskripsi.substring(0, 120) + (p.deskripsi.length > 120 ? '...' : '') : '-' %>
+                </p>
+            </div>
+            <div class="flex-col-end">
+    <span class="badge badge-status-<%= p.status === 'aktif' ? 'aktif' : p.status === 'selesai' ? 'selesai' : 'default' %>">
+        <%= p.status.charAt(0).toUpperCase() + p.status.slice(1) %>
+    </span>
+    <span class="text-faint-sm"><%= p.total_anggota %> anggota</span>
+</div>
+        </div>
+        <div style="margin-top:12px;">
+            <a href="/penelitian/<%= p.id %>" class="btn btn-primary" style="color:#fff; font-size:0.85em;">Lihat Detail</a>
+        </div>
+    </div>
+    <% }) %>
+<% } else { %>
+    <div class="card" style="padding:3em; text-align:center;">
+        <p style="color:#9ca3af;">Belum ada penelitian yang tersedia.</p>
+    </div>
+<% } %>
+
+<%- include('../partials/footer') %>
