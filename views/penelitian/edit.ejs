@@ -1,0 +1,132 @@
+<%- include('../partials/header') %>
+
+<div style="max-width:680px; margin:0 auto;">
+
+  <!-- Breadcrumb -->
+  <nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
+    <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
+    &rsaquo;
+    <a href="/penelitian/<%= penelitian.id %>" style="color:var(--primary); text-decoration:none;">Detail</a>
+    &rsaquo; Edit
+  </nav>
+
+  <div class="card" style="padding:2rem;">
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="margin:0;">Edit Penelitian</h2>
+      <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
+        Perbarui informasi penelitian. Kolom bertanda <span style="color:var(--destructive);">*</span> wajib diisi.
+      </p>
+    </div>
+
+    <!-- Validasi Error -->
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-destructive" style="margin-bottom:1.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+          <strong>Terdapat <%= errors.length %> kesalahan:</strong>
+          <ul style="margin:0.4rem 0 0; padding-left:1.2rem;">
+            <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+          </ul>
+        </div>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/penelitian/<%= penelitian.id %>/update" novalidate>
+
+      <!-- Judul -->
+      <div class="field" style="margin-bottom:1rem;">
+        <label for="judul">
+          Judul Penelitian <span style="color:var(--destructive);">*</span>
+        </label>
+        <input
+          type="text"
+          id="judul"
+          name="judul"
+          class="input"
+          maxlength="500"
+          required
+          value="<%= penelitian.judul || '' %>"
+        >
+        <small class="field-hint">Maksimal 500 karakter.</small>
+      </div>
+
+      <!-- Deskripsi -->
+      <div class="field" style="margin-bottom:1rem;">
+        <label for="deskripsi">Deskripsi / Abstrak</label>
+        <textarea
+          id="deskripsi"
+          name="deskripsi"
+          class="input"
+          rows="4"
+          style="resize:vertical;"
+        ><%= penelitian.deskripsi || '' %></textarea>
+      </div>
+
+      <!-- Tahun -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div class="field">
+          <label for="tahun_mulai">
+            Tahun Mulai <span style="color:var(--destructive);">*</span>
+          </label>
+          <input
+            type="number"
+            id="tahun_mulai"
+            name="tahun_mulai"
+            class="input"
+            min="2000"
+            max="<%= new Date().getFullYear() + 5 %>"
+            required
+            value="<%= penelitian.tahun_mulai || '' %>"
+          >
+        </div>
+        <div class="field">
+          <label for="tahun_selesai">Tahun Selesai</label>
+          <input
+            type="number"
+            id="tahun_selesai"
+            name="tahun_selesai"
+            class="input"
+            min="2000"
+            max="<%= new Date().getFullYear() + 10 %>"
+            placeholder="(opsional)"
+            value="<%= penelitian.tahun_selesai || '' %>"
+          >
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="field" style="margin-bottom:1.5rem;">
+        <label for="status">Status</label>
+        <select id="status" name="status" class="input">
+          <% ['draft','aktif','selesai','ditolak'].forEach(s => { %>
+            <option value="<%= s %>" <%= penelitian.status === s ? 'selected' : '' %>>
+              <%= s.charAt(0).toUpperCase() + s.slice(1) %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex; gap:0.75rem;">
+        <button type="submit" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Perbarui Penelitian
+        </button>
+        <a href="/penelitian/<%= penelitian.id %>" class="btn btn-secondary">Batal</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

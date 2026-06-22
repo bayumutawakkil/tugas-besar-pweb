@@ -1,4 +1,4 @@
-/* ===== Design System Variables ===== */
+﻿/* ===== Design System Variables ===== */
 :root {
   /* Core Design System - STRICT USAGE RULES */
   --primary: #2563eb;           /* Main actions, buttons, links */
@@ -904,37 +904,6 @@ input.error:focus {
     transform: translateY(0);
   }
 }
-@media (max-width: 768px) {
-  nav {
-    padding: 1rem 3% !important;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  nav div:last-child {
-    flex-basis: 100%;
-  }
-
-  .card {
-    margin: 0;
-    border-radius: 0.75rem;
-  }
-
-  .profile-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hero {
-    padding: 2rem 1rem;
-  }
-
-  .hero h1 {
-    font-size: 2rem;
-  }
-}
-
-/* ===== END OF STYLES ===== */
 
 /* ===== Responsive Design - Mobile First ===== */
 @media (max-width: 768px) {
@@ -1812,7 +1781,6 @@ body.has-sidebar.sidebar-collapsed .main-content { margin-left: 60px; }
   }
   .profile-name { display: none; }
 }
--e 
 .text-capitalize { text-transform: capitalize; }
 
 /* ===== PAGE NOT FOUND (404) ===== */
@@ -1960,3 +1928,40 @@ body.has-sidebar.sidebar-collapsed .main-content { margin-left: 60px; }
 }
 
 /* ===== END PAGE NOT FOUND ===== */
+
+/* ===== BADGE WARNA TAMBAHAN (untuk status penelitian & peran) ===== */
+.badge-green {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.badge-red {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.badge-yellow {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.badge-blue {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.badge-gray {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+/* ===== TEXT CAPITALIZE ===== */
+.text-capitalize {
+  text-transform: capitalize;
+}
+

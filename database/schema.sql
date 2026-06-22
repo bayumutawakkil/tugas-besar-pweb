@@ -66,6 +66,17 @@ CREATE TABLE `model_has_permissions` (
   CONSTRAINT `fk_mhp_user`       FOREIGN KEY (`model_id`)      REFERENCES `users`       (`id`) ON DELETE CASCADE
 );
 
+ALTER TABLE
+    `role_has_permissions` ADD CONSTRAINT `role_has_permissions_role_id_foreign` FOREIGN KEY(`role_id`) REFERENCES `roles`(`id`);
+ALTER TABLE
+    `model_has_roles` ADD CONSTRAINT `model_has_roles_role_id_foreign` FOREIGN KEY(`role_id`) REFERENCES `roles`(`id`);
+ALTER TABLE
+    `model_has_roles` ADD CONSTRAINT `model_has_roles_model_id_foreign` FOREIGN KEY(`model_id`) REFERENCES `users`(`id`);
+ALTER TABLE
+    `model_has_permissions` ADD CONSTRAINT `model_has_permissions_permission_id_foreign` FOREIGN KEY(`permission_id`) REFERENCES `permissions`(`id`);
+ALTER TABLE
+    `role_has_permissions` ADD CONSTRAINT `role_has_permissions_permission_id_foreign` FOREIGN KEY(`permission_id`) REFERENCES `permissions`(`id`);
+
 CREATE TABLE `penelitian` (
   `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `judul`        VARCHAR(500) NOT NULL,
@@ -83,7 +94,7 @@ CREATE TABLE `penelitian_anggota` (
   `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `penelitian_id` INT UNSIGNED NOT NULL,
   `dosen_id`      INT UNSIGNED NOT NULL,
-  `role`          ENUM('anggota','reviewer') NOT NULL DEFAULT 'anggota',
+  `role`          ENUM('Ketua','Anggota','Admin') NOT NULL DEFAULT 'Anggota',
   `status`        ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
