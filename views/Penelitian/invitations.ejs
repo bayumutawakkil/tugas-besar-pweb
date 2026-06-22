@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toast-container">
+  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
+    <%- include('../partials/_alert', {
+      type:    flashType === 'success' ? 'success' : 'destructive',
+      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
+      message: flashMsg
+    }) %>
+  <% } %>
+</div>
+
+<!-- Breadcrumb -->
+<nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
+  <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
+  &rsaquo;
+  Undangan Penelitian
+</nav>
+
+<div class="card" style="padding:1.5rem; max-width:900px; margin:0 auto;">
+  <h2 style="margin:0 0 1rem;">Undangan Penelitian</h2>
+  <p style="margin:0 0 1.25rem; color:var(--color-muted-foreground);">
+    Daftar penelitian yang mengundang Anda sebagai anggota. Silakan buka detail penelitian untuk menerima atau menolak.
+  </p>
+
+  <% if (!Array.isArray(pendingInvites) || pendingInvites.length === 0) { %>
+    <div style="padding:1rem; border-radius:0.75rem; background:#f3f4f6; color:#334155;">
+      Anda tidak memiliki undangan penelitian saat ini.
+    </div>
+  <% } else { %>
+    <div style="overflow-x:auto;">
+      <table class="table" style="width:100%; border-collapse:collapse; font-size:0.95rem;">
+        <thead>
+          <tr>
+            <th>Judul</th>
+            <th style="text-align:center;">Ketua</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% pendingInvites.forEach(p => { %>
+            <tr>
+              <td>
+                <a href="/penelitian/<%= p.id %>" style="color:var(--primary); text-decoration:none; font-weight:600;">
+                  <%= p.judul %>
+                </a>
+              </td>
+              <td style="text-align:center;"><%= p.ketua_name || '-' %></td>
+              <td style="text-align:center;"><span class="badge badge-yellow">Menunggu</span></td>
+              <td style="text-align:center; display:flex; justify-content:center; gap:0.4rem; flex-wrap:wrap;">
+                <form method="POST" action="/penelitian/<%= p.id %>/membership/update" style="display:inline;">
+                  <input type="hidden" name="status" value="approved">
+                  <button type="submit" class="btn btn-primary" style="padding:0.35rem 0.8rem; font-size:0.85rem;">Terima</button>
+                </form>
+                <form method="POST" action="/penelitian/<%= p.id %>/membership/update" style="display:inline;">
+                  <input type="hidden" name="status" value="rejected">
+                  <button type="submit" class="btn btn-destructive" style="padding:0.35rem 0.8rem; font-size:0.85rem;">Tolak</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

@@ -139,16 +139,42 @@ async function showMyPenelitian(req, res) {
     const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
 
     const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
+    const pendingInvites = penelitianList.filter(p => p.my_status === 'pending');
 
     return res.render('penelitian/my-penelitian', {
       user: req.user,
       penelitianList,
+      pendingInvites,
       flashType,
       flashMsg,
     });
   } catch (err) {
     console.error('[Controller] showMyPenelitian error:', err);
     return res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda.' });
+  }
+}
+
+/**
+ * GET /penelitian/undangan
+ * Menampilkan undangan keanggotaan penelitian untuk dosen anggota.
+ */
+async function showInvitations(req, res) {
+  try {
+    const flashType = req.query.flash_type || null;
+    const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
+
+    const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
+    const pendingInvites = penelitianList.filter(p => p.my_status === 'pending');
+
+    return res.render('penelitian/invitations', {
+      user: req.user,
+      pendingInvites,
+      flashType,
+      flashMsg,
+    });
+  } catch (err) {
+    console.error('[Controller] showInvitations error:', err);
+    return res.status(500).render('error', { message: 'Gagal memuat undangan penelitian.' });
   }
 }
 
@@ -229,6 +255,7 @@ async function showDetail(req, res) {
     const anggotaList = await penelitianRepo.getAnggotaPenelitian(req.params.id);
     const isKetua     = Number(penelitian.ketua_id) === Number(req.user.id);
     const isAdmin     = req.user.role === 'admin';
+    const currentMembership = anggotaList.find(a => Number(a.dosen_id) === Number(req.user.id));
 
     return res.render('penelitian/detail', {
       user: req.user,
@@ -236,6 +263,7 @@ async function showDetail(req, res) {
       anggotaList,
       isKetua,
       isAdmin,
+      currentMembership,
       flashType,
       flashMsg,
     });
@@ -741,6 +769,7 @@ async function exportPdf(req, res) {
 module.exports = {
   showDashboard,
   showMyPenelitian,
+  showInvitations,
   showCreateForm,
   handleCreate,
   showDetail,

@@ -53,6 +53,13 @@
       </svg>
       Tambah Penelitian
     </a>
+    <a href="/penelitian/undangan" class="btn btn-secondary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"/><path d="M12 4h9"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/><path d="M8 16h3"/><path d="M8 8h3"/>
+      </svg>
+      Undangan
+    </a>
   </div>
 </div>
 
@@ -76,6 +83,45 @@
     </button>
   </form>
 </div>
+
+<% if (Array.isArray(pendingInvites) && pendingInvites.length > 0) { %>
+  <div class="card" style="margin-bottom:1.25rem; padding:1.5rem;">
+    <h2 style="margin:0 0 1rem;">Undangan Penelitian</h2>
+    <p style="margin:0 0 1rem; color:var(--color-muted-foreground);">
+      Berikut penelitian yang menunggu Anda menerima atau menolak ajakan bergabung.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <thead>
+          <tr>
+            <th>Judul</th>
+            <th style="text-align:center;">Ketua</th>
+            <th style="text-align:center;">Status</th>
+            <th style="text-align:center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% pendingInvites.forEach((p) => { %>
+            <tr>
+              <td>
+                <a href="/penelitian/<%= p.id %>" style="color:var(--primary); text-decoration:none; font-weight:600;">
+                  <%= p.judul %>
+                </a>
+              </td>
+              <td style="text-align:center;"><%= p.ketua_name || '-' %></td>
+              <td style="text-align:center;"><span class="badge badge-yellow">Menunggu</span></td>
+              <td style="text-align:center;">
+                <a href="/penelitian/<%= p.id %>" class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
+                  Lihat & Proses
+                </a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
 
 <!-- Table -->
 <div class="card">
@@ -127,12 +173,16 @@
                 <%- include('../partials/_badge-status', { status: p.status }) %>
               </td>
               <td style="text-align:center;">
-                <div style="display:flex; gap:0.3rem; justify-content:center;">
+                <div style="display:flex; gap:0.3rem; justify-content:center; flex-wrap:wrap;">
                   <a href="/penelitian/<%= p.id %>"
                      class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
                     Detail
                   </a>
                   <% if (isKetua) { %>
+                    <a href="/penelitian/<%= p.id %>/anggota"
+                       class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
+                      Kelola Anggota
+                    </a>
                     <a href="/penelitian/<%= p.id %>/edit"
                        class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
                       Edit

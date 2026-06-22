@@ -73,6 +73,9 @@ router.get('/dashboard', ...requireDosen, ctrl.showDashboard);
 // ── 2. Data Penelitian Saya ─────────────────────────────────────────────
 router.get('/my-penelitian', ...requireDosen, ctrl.showMyPenelitian);
 
+// ── 2a. Undangan Penelitian ───────────────────────────────────────────────
+router.get('/undangan', ...requireDosen, ctrl.showInvitations);
+
 // ── 3. Cari penelitian ──────────────────────────────────────────────────
 router.get('/search', ...requireDosen, ctrl.handleSearch);
 

@@ -27,6 +27,15 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; gap:1rem;">
         <div>
           <h2 style="margin:0 0 0.4rem;"><%= penelitian.judul %></h2>
+          <% if (currentMembership && currentMembership.status === 'pending' && !isKetua && !isAdmin) { %>
+            <div style="margin-top:0.75rem; padding:0.85rem 1rem; border-radius:0.75rem; background:#fffbeb; border:1px solid #fef3c7; color:#92400e; max-width:520px;">
+              <strong>Anda diundang sebagai anggota penelitian ini.</strong>
+              <div style="margin-top:0.35rem; font-size:0.92rem;">
+                Silakan pilih <em>Terima</em> atau <em>Tolak</em> di daftar anggota di bawah.
+              </div>
+            </div>
+          <% } %>
+        </div>
           <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
             <%- include('../partials/_badge-status', { status: penelitian.status }) %>
             <span style="font-size:0.82rem; color:var(--color-muted-foreground);">
@@ -161,6 +170,8 @@
                                 style="padding:0.2rem 0.5rem; font-size:0.78rem;">Tolak</button>
                       </form>
                     </td>
+                  <% } else if (!isKetua && !isAdmin && Number(a.dosen_id) === Number(user.id) && a.status !== 'pending') { %>
+                    <td style="text-align:center;"><span style="color:var(--color-muted-foreground);">–</span></td>
                   <% } %>
                 </tr>
               <% }) %>
