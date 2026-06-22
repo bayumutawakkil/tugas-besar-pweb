@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 
 <!-- Page Header -->
 <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -68,10 +68,8 @@
               <td style="text-align:center;">
                 <% if (item.role === 'admin') { %>
                   <span class="badge badge-blue">Admin</span>
-                <% } else if (item.role === 'dosen') { %>
-                  <span class="badge badge-gray">Dosen</span>
                 <% } else { %>
-                  <span class="badge badge-gray">Anggota</span>
+                  <span class="badge badge-gray">Dosen</span>
                 <% } %>
               </td>
 
@@ -102,4 +100,4 @@
   </div>
 </div>
 
-<%- include('partials/footer') %>
+<%- include('../partials/footer') %>

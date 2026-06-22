@@ -8,7 +8,7 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'pweb_ftirda',
+  database: process.env.DB_NAME || 'facultyware',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -42,7 +42,7 @@ const getUser = async (email) => {
   }
 };
 
-const createUser = async (email, password, name, role = 'anggota') => {
+const createUser = async (email, password, name, role = 'dosen') => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const conn = await pool.getConnection();
   try {
@@ -69,7 +69,7 @@ const getAllUsers = async () => {
 };
 
 const updateUserRole = async (userId, role) => {
-  const validRoles = ['admin', 'dosen', 'anggota'];
+  const validRoles = ['admin', 'dosen'];
   if (!validRoles.includes(role)) throw new Error('Role tidak valid');
 
   const conn = await pool.getConnection();

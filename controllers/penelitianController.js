@@ -15,10 +15,10 @@
 
 'use strict';
 
-const ExcelJS = require('exceljs');
-const PDFDocument = require('pdfkit');
-const db = require('../config/database');
-const penelitianRepo = require('../config/penelitian');
+const ExcelJS      = require('exceljs');
+const PDFDocument  = require('pdfkit');
+const db           = require('../config/database');
+const penelitianRepo = require('../models/penelitianModel');
 
 // ─────────────────────────────────────────────
 //  HELPER
@@ -762,14 +762,91 @@ async function exportPdf(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  EXPORTS
-// ─────────────────────────────────────────────
+// ── Kelola Anggota ───────────────────────────────────────────────────────────
+
+async function showManageAnggota(req, res) {
+  try {
+    const penelitianId   = req.params.id;
+    const penelitian     = req.penelitian || await penelitianRepo.getPenelitianById(penelitianId);
+    const anggotaList    = await penelitianRepo.getAnggotaPenelitian(penelitianId);
+    const availableDosen = await penelitianRepo.getAvailableDosen(penelitianId);
+
+    return res.render('penelitian/manage-anggota', {
+      user: req.user, penelitian, anggotaList, availableDosen,
+      errors: [], flashType: null, flashMsg: null,
+    });
+  } catch (err) {
+    console.error('[Controller] showManageAnggota error:', err);
+    return res.status(500).render('error', { message: 'Gagal memuat halaman kelola anggota.' });
+  }
+}
+
+async function handleAddAnggota(req, res) {
+  const penelitianId = req.params.id;
+  try {
+    const dosenId = req.body.dosen_id;
+    if (!dosenId) throw new Error('Dosen harus dipilih.');
+    await penelitianRepo.addAnggotaPenelitian(penelitianId, dosenId);
+    return res.redirect(`/penelitian/${penelitianId}/anggota`);
+  } catch (err) {
+    const penelitian     = await penelitianRepo.getPenelitianById(penelitianId);
+    const anggotaList    = await penelitianRepo.getAnggotaPenelitian(penelitianId);
+    const availableDosen = await penelitianRepo.getAvailableDosen(penelitianId);
+    return res.render('penelitian/manage-anggota', {
+      user: req.user, penelitian, anggotaList, availableDosen,
+      errors: [err.message], flashType: null, flashMsg: null,
+    });
+  }
+}
+
+async function handleRemoveAnggota(req, res) {
+  try {
+    const dosenId = req.body.dosen_id;
+    if (!dosenId) throw new Error('Dosen ID tidak valid.');
+    await penelitianRepo.removeAnggotaPenelitian(req.params.id, dosenId);
+    return res.redirect(`/penelitian/${req.params.id}/anggota`);
+  } catch (err) {
+    console.error('[Controller] handleRemoveAnggota error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function handleUpdateMembership(req, res) {
+  try {
+    const status = req.body.status;
+    if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
+    await penelitianRepo.updateStatusAnggota(req.params.id, req.user.id, status);
+    return res.redirect(`/penelitian/${req.params.id}`);
+  } catch (err) {
+    console.error('[Controller] handleUpdateMembership error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function exportAnggotaCsv(req, res) {
+  try {
+    const penelitianId = req.params.id;
+    const anggotaList  = await penelitianRepo.getAnggotaPenelitian(penelitianId);
+
+    let csv = 'No,Nama Dosen,Email,Role,Status\n';
+    anggotaList.forEach((a, idx) => {
+      csv += `${idx + 1},"${a.dosen_name}","${a.dosen_email}","${a.role}","${a.status}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="penelitian_${penelitianId}_anggota.csv"`);
+    return res.send(csv);
+  } catch (err) {
+    console.error('[Controller] exportAnggotaCsv error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
   showDashboard,
   showMyPenelitian,
-  showInvitations,
   showCreateForm,
   handleCreate,
   showDetail,
@@ -781,4 +858,9 @@ module.exports = {
   handleImport,
   exportExcel,
   exportPdf,
+  showManageAnggota,
+  handleAddAnggota,
+  handleRemoveAnggota,
+  handleUpdateMembership,
+  exportAnggotaCsv,
 };

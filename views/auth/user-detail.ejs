@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 
 <!-- Breadcrumb -->
 <nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
@@ -34,10 +34,8 @@
         <div>
           <% if (detailUser.role === 'admin') { %>
             <span class="badge badge-blue">Admin</span>
-          <% } else if (detailUser.role === 'dosen') { %>
-            <span class="badge badge-gray">Dosen</span>
           <% } else { %>
-            <span class="badge badge-gray">Anggota</span>
+            <span class="badge badge-gray">Dosen</span>
           <% } %>
         </div>
       </div>
@@ -104,7 +102,6 @@
         <select id="role-select" name="role" class="input">
           <option value="admin"   <%= detailUser.role === 'admin'   ? 'selected' : '' %>>Admin</option>
           <option value="dosen"   <%= detailUser.role === 'dosen'   ? 'selected' : '' %>>Dosen</option>
-          <option value="anggota" <%= detailUser.role === 'anggota' ? 'selected' : '' %>>Anggota</option>
         </select>
       </div>
       <button type="submit" class="btn btn-secondary" style="flex-shrink:0;">Ubah Role</button>
@@ -185,4 +182,4 @@
   </a>
 </div>
 
-<%- include('partials/footer') %>
+<%- include('../partials/footer') %>

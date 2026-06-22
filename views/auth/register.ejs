@@ -1,17 +1,17 @@
-<%- include('partials/header') %>
+<%- include('../partials/header') %>
 
 <div class="toast-container" id="toast-container">
   <% if (typeof error !== 'undefined' && error) { %>
-    <%- include('partials/_alert', { 
+    <%- include('../partials/_alert', { 
       type: 'destructive', 
-      title: 'Login Gagal', 
+      title: 'Pendaftaran Gagal', 
       message: error 
     }) %>
   <% } %>
   <% if (typeof success !== 'undefined' && success) { %>
-    <%- include('partials/_alert', { 
+    <%- include('../partials/_alert', { 
       type: 'success', 
-      title: 'Berhasil', 
+      title: 'Registrasi Berhasil', 
       message: success 
     }) %>
   <% } %>
@@ -20,12 +20,21 @@
 <div class="flex justify-center items-center" style="min-height: 70vh;">
   <div class="card animate-fade-in" style="width: 100%; max-width: 450px;">
     <header>
-      <h2>Masuk ke Akun</h2>
-      <p>Selamat datang! Silakan login untuk mengelola penelitian Anda.</p>
+      <h2>Buat Akun Baru</h2>
+      <p>Bergabunglah dengan Sistem Penelitian FTI dan kelola penelitian Anda dengan mudah.</p>
     </header>
     <section>
-      <form action="/auth/login" method="POST" id="loginForm" class="flex flex-col gap-4">
-        <%- include('partials/_input', {
+      <form action="/auth/register" method="POST" id="registerForm" class="flex flex-col gap-4">
+        <%- include('../partials/_input', {
+          inputType: 'text',
+          inputId: 'name',
+          inputName: 'name',
+          inputLabel: 'Nama Lengkap',
+          inputPlaceholder: 'John Doe',
+          inputRequired: true
+        }) %>
+        
+        <%- include('../partials/_input', {
           inputType: 'email',
           inputId: 'email',
           inputName: 'email',
@@ -34,18 +43,18 @@
           inputRequired: true
         }) %>
         
-        <%- include('partials/_input', {
+        <%- include('../partials/_input', {
           inputType: 'password',
           inputId: 'password',
           inputName: 'password',
           inputLabel: 'Kata Sandi',
-          inputPlaceholder: '••••••••',
+          inputPlaceholder: 'Minimal 6 karakter',
           inputRequired: true,
-          inputHint: 'Minimal 6 karakter'
+          inputHint: 'Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal'
         }) %>
         
         <button type="submit" class="btn btn-primary w-full btn-lg" style="margin-top: var(--space-2);">
-          <span class="btn-text">Login</span>
+          <span class="btn-text">Daftar Akun</span>
         </button>
       </form>
       
@@ -53,8 +62,8 @@
       
       <div class="text-center">
         <p style="margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm);">
-          Belum punya akun? 
-          <a href="/auth/register" style="color: var(--primary-500); font-weight: 600; text-decoration: none;">Daftar sekarang</a>
+          Sudah punya akun? 
+          <a href="/auth/login" style="color: var(--primary-500); font-weight: 600; text-decoration: none;">Login di sini</a>
         </p>
       </div>
     </section>
@@ -62,7 +71,7 @@
 </div>
 
 <script>
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('registerForm').addEventListener('submit', function(e) {
   const btn = this.querySelector('button[type="submit"]');
   btn.classList.add('loading');
   btn.disabled = true;
@@ -70,4 +79,4 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 });
 </script>
 
-<%- include('partials/footer') %>
+<%- include('../partials/footer') %>
