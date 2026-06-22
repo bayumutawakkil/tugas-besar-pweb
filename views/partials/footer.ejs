@@ -1,8 +1,11 @@
-  </main>
-  
-  <footer style="text-align: center; padding: var(--space-8) var(--space-4); margin-top: auto; color: var(--color-muted-foreground); font-size: var(--text-sm); border-top: 1px solid rgba(0, 0, 0, 0.06);">
-    <p style="margin: 0 0 var(--space-2) 0;">&copy; 2026 NexusAuth. All rights reserved.</p>
-    <p style="margin: 0; font-size: var(--text-xs);">Built with Express.js & Basecoat UI</p>
-  </footer>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      if (link.getAttribute('href') === window.location.pathname)
+        link.classList.add('active');
+    });
+  </script>
 </body>
 </html>
