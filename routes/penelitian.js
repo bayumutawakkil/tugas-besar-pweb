@@ -13,6 +13,18 @@
 
 'use strict';
 
+const express = require('express');
+const multer  = require('multer');
+const router  = express.Router();
+
+const { checkAuth }    = require('../config');
+const { ROLES, checkRole, checkOwnership, checkCanView, checkAnggotaSelf } =
+  require('../middleware/accessControlList');
+const { preventIdManipulation, validatePenelitianData } =
+  require('../middleware/penelitianAuth');
+
+const ctrl = require('../controllers/penelitianController');
+
 const {
   getAllPenelitian,
   getPenelitianByDosenId,
@@ -28,34 +40,6 @@ const {
   getAllDosen,
   getAvailableDosen,
 } = require('../config/penelitian');
-
-router.get('/dashboard', checkAuth, async (req, res) => {
-  try {
-    const penelitianList = await getAllPenelitian();
-    res.render('penelitian/dashboard', { user: req.user, penelitianList });
-  } catch (err) {
-    res.status(500).render('error', { message: 'Gagal memuat dashboard penelitian' });
-  }
-});
-
-router.get('/my-penelitian', checkAuth, async (req, res) => {
-  try {
-    const penelitianList = await getPenelitianByDosenId(req.user.id);
-    res.render('penelitian/my-penelitian', { user: req.user, penelitianList });
-  } catch (err) {
-    res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda' });
-  }
-const express = require('express');
-const multer  = require('multer');
-const router  = express.Router();
-
-const { checkAuth }    = require('../config');
-const { ROLES, checkRole, checkOwnership, checkCanView } =
-  require('../middleware/accessControlList');
-const { preventIdManipulation } =
-  require('../middleware/penelitianAuth');
-
-const ctrl = require('../controllers/penelitianController');
 
 // ── Multer: simpan file di memori (tidak ke disk) ──────────────────────────
 const upload = multer({
@@ -96,31 +80,6 @@ router.get('/search', ...requireDosen, ctrl.handleSearch);
 router.get('/import', ...requireDosen, ctrl.showImportForm);
 
 router.post(
-  '/create',
-  checkAuth,
-  checkRole(ROLES.DOSEN, ROLES.ADMIN),
-  validatePenelitianData,
-  async (req, res) => {
-    try {
-      const data = {
-        judul:         req.body.judul,
-        deskripsi:     req.body.deskripsi,
-        tahun_mulai:   req.body.tahun_mulai,
-        tahun_selesai: req.body.tahun_selesai || null,
-        status:        req.body.status || 'draft',
-        ketua_id:      req.user.id,
-      };
-
-      const penelitianId = await createPenelitian(data);
-      res.redirect('/penelitian/my-penelitian');
-    } catch (err) {
-      console.error('Error creating penelitian:', err);
-      res.render('penelitian/create', {
-        user: req.user,
-        error: 'Gagal membuat penelitian. ' + err.message,
-      });
-    }
-  }
   '/import',
   ...requireDosen,
   upload.single('file_excel'),
@@ -136,7 +95,7 @@ router.get('/export/pdf', ...requireDosen, ctrl.exportPdf);
 // ── 7. Form tambah penelitian ───────────────────────────────────────────
 router.get('/create', ...requireDosen, ctrl.showCreateForm);
 
-router.post('/create', ...requireDosen, ctrl.handleCreate);
+router.post('/create', ...requireDosen, validatePenelitianData, ctrl.handleCreate);
 
 // ── 8. Detail penelitian ────────────────────────────────────────────────
 //    checkCanView membolehkan ketua, anggota, dan admin melihat detail.
@@ -157,31 +116,6 @@ router.post(
   checkOwnership,
   preventIdManipulation,
   validatePenelitianData,
-  async (req, res) => {
-    try {
-      const penelitianId = req.params.id;
-      const data = {
-        judul:         req.body.judul,
-        deskripsi:     req.body.deskripsi,
-        tahun_mulai:   req.body.tahun_mulai,
-        tahun_selesai: req.body.tahun_selesai || null,
-        status:        req.body.status,
-      };
-
-      const success = await updatePenelitian(penelitianId, data);
-      if (!success) throw new Error('Gagal mengupdate penelitian');
-
-      res.redirect('/penelitian/my-penelitian');
-    } catch (err) {
-      console.error('Error updating penelitian:', err);
-      const penelitian = await getPenelitianById(req.params.id);
-      res.render('penelitian/edit', {
-        user: req.user,
-        penelitian,
-        error: 'Gagal mengupdate penelitian. ' + err.message,
-      });
-    }
-  }
   ctrl.handleUpdate
 );
 
@@ -195,16 +129,6 @@ router.post(
 );
 
 // ── 12. Kelola anggota ──────────────────────────────────────────────────
-const {
-  getAnggotaPenelitian,
-  getPenelitianById,
-  addAnggotaPenelitian,
-  removeAnggotaPenelitian,
-  updateStatusAnggota,
-  getAvailableDosen,
-} = require('../config/penelitian');
-const { checkAnggotaSelf } = require('../middleware/accessControlList');
-
 router.get(
   '/:id/anggota',
   ...requireDosen,
@@ -278,22 +202,17 @@ router.post(
   async (req, res) => {
     try {
       const status = req.body.status;
-
-      if (!['approved', 'rejected'].includes(status)) {
-        throw new Error('Status tidak valid');
-      }
-
-      const success = await updateStatusAnggota(penelitianId, req.user.id, status);
-      if (!success) throw new Error('Gagal mengupdate status keanggotaan');
-
-      res.redirect('/penelitian/my-penelitian');
+      if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
+      await updateStatusAnggota(req.params.id, req.user.id, status);
+      return res.redirect(`/penelitian/${req.params.id}`);
     } catch (err) {
-      console.error('Error updating membership:', err);
-      res.status(500).json({ error: 'Gagal mengupdate status keanggotaan. ' + err.message });
+      console.error('Error update membership:', err);
+      return res.status(500).json({ error: err.message });
     }
   }
 );
 
+// ── 14. Export CSV anggota ──────────────────────────────────────────────
 router.get(
   '/:id/export',
   checkAuth,
@@ -314,11 +233,8 @@ router.get(
         `attachment; filename="penelitian_${penelitianId}_anggota.csv"`
       );
       res.send(csv);
-      if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
-      await updateStatusAnggota(req.params.id, req.user.id, status);
-      return res.redirect(`/penelitian/${req.params.id}`);
     } catch (err) {
-      console.error('Error update membership:', err);
+      console.error('Error export CSV:', err);
       return res.status(500).json({ error: err.message });
     }
   }

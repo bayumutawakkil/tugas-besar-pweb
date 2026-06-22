@@ -59,7 +59,9 @@ const createUser = async (email, password, name, role = 'anggota') => {
 const getAllUsers = async () => {
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.execute('SELECT id, email, name, role, status FROM users');
+    const [rows] = await conn.execute(
+      'SELECT id, name, email, role, status, created_at, updated_at FROM users ORDER BY created_at DESC'
+    );
     return rows;
   } finally {
     conn.release();
@@ -104,24 +106,19 @@ const updateUserProfile = async (userId, { name, email, password }) => {
 };
 
 const updateUserStatus = async (id, status) => {
+  const validStatus = ['aktif', 'nonaktif'];
+  if (!validStatus.includes(status)) throw new Error('Status tidak valid');
 
   const conn = await pool.getConnection();
-
   try {
-
     const [result] = await conn.execute(
-      'UPDATE users SET status = ? WHERE id = ?',
+      'UPDATE users SET status = ?, updated_at = NOW() WHERE id = ?',
       [status, id]
     );
-
     return result;
-
   } finally {
-
     conn.release();
-
   }
-
 };
 
 const getUserById = async (id) => {
@@ -160,23 +157,16 @@ const deleteUser = async (id) => {
 };
 
 const searchUsers = async (keyword) => {
-
   const conn = await pool.getConnection();
-
   try {
-
     const [rows] = await conn.execute(
-      `
-      SELECT *
-      FROM users
-      WHERE name LIKE ?
-      OR email LIKE ?
-      `,
+      `SELECT id, name, email, role, status, created_at, updated_at
+       FROM users
+       WHERE name LIKE ? OR email LIKE ?
+       ORDER BY created_at DESC`,
       [`%${keyword}%`, `%${keyword}%`]
     );
-
     return rows;
-
   } finally {
     conn.release();
   }

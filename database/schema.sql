@@ -13,6 +13,7 @@ CREATE TABLE `users` (
   `email`                    VARCHAR(255) NOT NULL UNIQUE,
   `password`                 VARCHAR(255) NOT NULL,
   `role`                     ENUM('admin','dosen','anggota') NOT NULL DEFAULT 'anggota',
+  `status`                   ENUM('aktif','nonaktif') NOT NULL DEFAULT 'aktif',
   `email_verified_at`        DATETIME     NULL DEFAULT NULL,
   `remember_token`           VARCHAR(255) NULL DEFAULT NULL,
   `two_factor_secret`        TEXT         NULL DEFAULT NULL,

@@ -1,62 +1,132 @@
 <%- include('../partials/header') %>
 
-<div class="page-header">
-    <h1 class="page-title">Penelitian FTI</h1>
-    <p class="page-subtitle">Daftar semua penelitian yang tersedia</p>
+<!-- Toast Notifications -->
+<div class="toast-container" id="toast-container">
+  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
+    <%- include('../partials/_alert', {
+      type:    flashType === 'success' ? 'success' : 'destructive',
+      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
+      message: flashMsg
+    }) %>
+  <% } %>
+</div>
+
+<!-- Page Header -->
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+  <div>
+    <h1 class="page-title" style="margin:0;">Semua Data Penelitian</h1>
+    <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
+      Daftar seluruh penelitian yang terdaftar di FTI
+    </p>
+  </div>
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <a href="/penelitian/export/excel" class="btn btn-secondary" title="Ekspor ke Excel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Excel
+    </a>
+    <a href="/penelitian/export/pdf" class="btn btn-secondary" title="Ekspor ke PDF">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      PDF
+    </a>
+    <a href="/penelitian/import" class="btn btn-secondary" title="Impor dari Excel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Import
+    </a>
+    <a href="/penelitian/create" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Tambah Penelitian
+    </a>
+  </div>
 </div>
 
 <!-- Search Bar -->
-<div class="card" style="padding:1.5em; margin-bottom:20px;">
-    <form action="/penelitian/search" method="GET">
-        <div style="display:flex; gap:10px;">
-            <input type="text" name="q" class="form-control"
-                placeholder="Cari judul, deskripsi, atau nama ketua..." style="flex:1;">
-            <button type="submit" class="btn btn-primary">Cari</button>
-        </div>
-    </form>
+<div class="card" style="padding:1rem; margin-bottom:1.25rem;">
+  <form action="/penelitian/search" method="GET" style="display:flex; gap:0.5rem;">
+    <input
+      type="text"
+      name="q"
+      class="input"
+      placeholder="Cari judul, deskripsi, atau nama ketua..."
+      style="flex:1;"
+    >
+    <input type="hidden" name="scope" value="all">
+    <button type="submit" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      Cari
+    </button>
+  </form>
 </div>
 
-<!-- Tombol Buat Penelitian (hanya dosen/admin) -->
-<% if(user.role === 'dosen' || user.role === 'admin'){ %>
-<div style="margin-bottom:20px;">
-    <a href="/penelitian/create" class="btn btn-primary" style="color:#fff;">+ Buat Penelitian</a>
+<!-- Table -->
+<div class="card">
+  <div style="overflow-x:auto;">
+    <table class="table" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="width:3rem; text-align:center;">No</th>
+          <th>Judul Penelitian</th>
+          <th>Ketua</th>
+          <th style="text-align:center;">Tahun</th>
+          <th style="text-align:center;">Anggota</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center; width:9rem;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (penelitianList.length === 0) { %>
+          <tr>
+            <td colspan="7" style="text-align:center; padding:2rem; color:var(--color-muted-foreground);">
+              Belum ada data penelitian.
+            </td>
+          </tr>
+        <% } else { %>
+          <% penelitianList.forEach((p, i) => { %>
+            <tr>
+              <td style="text-align:center;"><%= i + 1 %></td>
+              <td>
+                <a href="/penelitian/<%= p.id %>"
+                   style="font-weight:600; color:var(--primary); text-decoration:none;">
+                  <%= p.judul %>
+                </a>
+              </td>
+              <td><%= p.ketua_name || '-' %></td>
+              <td style="text-align:center;">
+                <%= p.tahun_mulai %>
+                <% if (p.tahun_selesai) { %>– <%= p.tahun_selesai %><% } %>
+              </td>
+              <td style="text-align:center;"><%= p.total_anggota || 0 %></td>
+              <td style="text-align:center;">
+                <%- include('../partials/_badge-status', { status: p.status }) %>
+              </td>
+              <td style="text-align:center;">
+                <a href="/penelitian/<%= p.id %>" class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">Detail</a>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
 </div>
-<% } %>
-
-<% if(penelitianList && penelitianList.length > 0){ %>
-    <% penelitianList.forEach(p => { %>
-    <div class="card" style="padding:1.5em; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-            <div>
-                <h3 style="margin:0 0 6px 0;">
-                    <a href="/penelitian/<%= p.id %>" style="text-decoration:none; color:inherit;">
-                        <%= p.judul %>
-                    </a>
-                </h3>
-                <p style="color:#6b7280; margin:0 0 8px 0; font-size:0.9em;">
-                    Ketua: <strong><%= p.ketua_name %></strong>
-                    &middot; <%= p.tahun_mulai %><%= p.tahun_selesai ? ' - ' + p.tahun_selesai : '' %>
-                </p>
-                <p style="color:#374151; margin:0; font-size:0.9em;">
-                    <%= p.deskripsi ? p.deskripsi.substring(0, 120) + (p.deskripsi.length > 120 ? '...' : '') : '-' %>
-                </p>
-            </div>
-            <div class="flex-col-end">
-    <span class="badge badge-status-<%= p.status === 'aktif' ? 'aktif' : p.status === 'selesai' ? 'selesai' : 'default' %>">
-        <%= p.status.charAt(0).toUpperCase() + p.status.slice(1) %>
-    </span>
-    <span class="text-faint-sm"><%= p.total_anggota %> anggota</span>
-</div>
-        </div>
-        <div style="margin-top:12px;">
-            <a href="/penelitian/<%= p.id %>" class="btn btn-primary" style="color:#fff; font-size:0.85em;">Lihat Detail</a>
-        </div>
-    </div>
-    <% }) %>
-<% } else { %>
-    <div class="card" style="padding:3em; text-align:center;">
-        <p style="color:#9ca3af;">Belum ada penelitian yang tersedia.</p>
-    </div>
-<% } %>
 
 <%- include('../partials/footer') %>
