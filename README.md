@@ -137,7 +137,7 @@ Setiap anggota harus menambahkan minimal satu fitur yang:
 
 ```
 Username : admin@fti.ac.id
-Username : Admin@1234
+Username : `Admin@1234`
 ```
 
 ## Struktur Project

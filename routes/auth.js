@@ -8,6 +8,11 @@ const {
   getUserById,
   createUser,
   updateUserProfile,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+  searchUsers,
+  updateUserStatus
 } = require('../config');
 const { ROLES } = require('../middleware/accessControlList');
 
@@ -63,6 +68,12 @@ router.post('/login', async (req, res) => {
       return res.render('login', { error: 'Email atau password salah' });
     }
 
+    if(user.status === 'nonaktif'){
+    return res.render('login',{
+        error:'Akun dinonaktifkan administrator'
+    });
+}
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role || ROLES.ANGGOTA },
       JWT_SECRET,
@@ -110,8 +121,105 @@ router.get('/pagenotfound', checkAuth, async (req, res) => {
 });
 
 router.get('/users', checkAuth, async (req, res) => {
-  const user = await getUser(req.user.email);
-  res.render('pagenotfound', { user });
+  try {
+    const currentUser = await getUser(req.user.email);
+
+    if (currentUser.role !== 'admin') {
+      return res.redirect('/auth/pagenotfound');
+    }
+
+    const users = await getAllUsers();
+
+    res.render('users', {
+      user: currentUser,
+      users
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('error', {
+      message: 'Gagal memuat data pengguna'
+    });
+  }
+});
+
+router.get('/users/search', checkAuth, async (req, res) => {
+
+  const currentUser = await getUser(req.user.email);
+
+  if (currentUser.role !== 'admin') {
+    return res.redirect('/auth/pagenotfound');
+  }
+
+  const keyword = req.query.keyword || '';
+
+  const users = await searchUsers(keyword);
+
+  res.render('users', {
+    user: currentUser,
+    users
+  });
+});
+
+router.get('/users/:id', checkAuth, async (req, res) => {
+  const currentUser = await getUser(req.user.email);
+
+  const detailUser = await getUserById(req.params.id);
+
+  res.render('user-detail', {
+    user: currentUser,
+    detailUser
+  });
+});
+
+router.post('/users/:id/edit', checkAuth, async (req, res) => {
+
+  const currentUser = await getUser(req.user.email);
+
+  if (currentUser.role !== 'admin') {
+    return res.redirect('/auth/pagenotfound');
+  }
+
+  await updateUserProfile(req.params.id, {
+    name: req.body.name,
+    email: req.body.email,
+    password: null
+  });
+
+  
+
+  res.redirect('/auth/users');
+});
+
+router.post('/users/:id/role', checkAuth, async (req, res) => {
+
+  console.log('ROLE YANG DIKIRIM =', req.body.role);
+
+  const currentUser = await getUser(req.user.email);
+
+  if (currentUser.role !== 'admin') {
+    return res.redirect('/auth/pagenotfound');
+  }
+
+  await updateUserRole(
+    req.params.id,
+    req.body.role
+  );
+
+  res.redirect('/auth/users');
+});
+
+router.post('/users/:id/delete', checkAuth, async (req, res) => {
+
+  const currentUser = await getUser(req.user.email);
+
+  if (currentUser.role !== 'admin') {
+    return res.redirect('/auth/pagenotfound');
+  }
+
+  await deleteUser(req.params.id);
+
+  res.redirect('/auth/users');
 });
 
 router.get('/profile', checkAuth, async (req, res) => {
@@ -167,6 +275,24 @@ router.post('/profile', checkAuth, async (req, res) => {
     console.error(err);
     res.status(500).render('error', { message: 'Gagal memperbarui profil.' });
   }
+});
+
+router.post('/users/:id/status', checkAuth, async (req,res)=>{
+
+    const currentUser = await getUser(req.user.email);
+
+    if(currentUser.role !== 'admin'){
+        return res.redirect('/auth/pagenotfound');
+    }
+
+    const status = req.body.status;
+
+    await updateUserStatus(
+        req.params.id,
+        status
+    );
+
+    res.redirect('/auth/users');
 });
 
 module.exports = router;

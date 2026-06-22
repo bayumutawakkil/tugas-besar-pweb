@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h1 class="page-title">Kelola Anggota</h1>
+            <p class="page-subtitle"><%= penelitian.judul %></p>
+        </div>
+        <a href="/penelitian/<%= penelitian.id %>" class="btn btn-secondary">← Kembali</a>
+    </div>
+</div>
+
+<% if(error){ %>
+<div class="alert-inline-danger">
+    <%= error %>
+</div>
+
+<!-- Form Undang Anggota -->
+<div class="card" style="padding:1.5em; margin-bottom:20px;">
+    <h3 style="margin:0 0 16px 0;">Undang Anggota Baru</h3>
+    <% if(availableDosen && availableDosen.length > 0){ %>
+    <form action="/penelitian/<%= penelitian.id %>/anggota/add" method="POST">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <select name="dosen_id" class="form-control" style="flex:1;" required>
+                <option value="">-- Pilih Dosen --</option>
+                <% availableDosen.forEach(d => { %>
+                <option value="<%= d.id %>"><%= d.name %> (<%= d.email %>)</option>
+                <% }) %>
+            </select>
+            <button type="submit" class="btn btn-primary" style="color:#fff;">Undang</button>
+        </div>
+    </form>
+    <% } else { %>
+    <p style="color:#9ca3af; margin:0;">Semua dosen sudah terdaftar dalam penelitian ini.</p>
+    <% } %>
+</div>
+
+<!-- Tabel Anggota -->
+<div class="card" style="padding:1.5em;">
+    <h3 style="margin:0 0 16px 0;">Daftar Anggota (<%= anggotaList.length %>)</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:2px solid #e5e7eb;">
+                <th style="text-align:left; padding:10px 0; font-size:0.85em; color:#6b7280;">Nama</th>
+                <th style="text-align:left; padding:10px 0; font-size:0.85em; color:#6b7280;">Email</th>
+                <th style="text-align:left; padding:10px 0; font-size:0.85em; color:#6b7280;">Role</th>
+                <th style="text-align:left; padding:10px 0; font-size:0.85em; color:#6b7280;">Status</th>
+                <th style="text-align:left; padding:10px 0; font-size:0.85em; color:#6b7280;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% anggotaList.forEach(a => { %>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:12px 0;"><%= a.dosen_name %></td>
+                <td style="padding:12px 0; color:#6b7280; font-size:0.9em;"><%= a.dosen_email %></td>
+                <td style="padding:12px 0;">
+                    <span class="badge badge-sm badge-role-<%= a.role === 'Ketua' ? 'ketua' : 'anggota' %>">
+    <%= a.role %>
+</span>
+                </td>
+                <td style="padding:12px 0;">
+                    <span class="badge badge-sm badge-approval-<%= a.status === 'approved' ? 'approved' : a.status === 'rejected' ? 'rejected' : 'pending' %>">
+    <%= a.status === 'approved' ? 'Aktif' : a.status === 'rejected' ? 'Ditolak' : 'Menunggu' %>
+</span>
+                </td>
+                <td style="padding:12px 0;">
+                    <% if(a.role !== 'Ketua'){ %>
+                    <form action="/penelitian/<%= penelitian.id %>/anggota/remove" method="POST"
+                        style="display:inline;"
+                        onsubmit="return confirm('Yakin ingin menghapus <%= a.dosen_name %>?');">
+                        <input type="hidden" name="dosen_id" value="<%= a.dosen_id %>">
+                        <button type="submit" class="btn btn-danger" style="font-size:0.8em;">Hapus</button>
+                    </form>
+                    <% } else { %>
+                    <span style="color:#9ca3af; font-size:0.85em;">-</span>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

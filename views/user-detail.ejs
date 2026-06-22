@@ -1,0 +1,159 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+    <h1 class="page-title">Detail Pengguna</h1>
+</div>
+
+<!-- Edit Nama & Email -->
+<div class="card" style="padding:2em;">
+
+    <form action="/auth/users/<%= detailUser.id %>/edit" method="POST">
+
+        <div class="form-group">
+            <label>Nama</label>
+            <input
+                type="text"
+                name="name"
+                value="<%= detailUser.name %>"
+                class="form-control"
+                required
+            >
+        </div>
+
+        <br>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input
+                type="email"
+                name="email"
+                value="<%= detailUser.email %>"
+                class="form-control"
+                required
+            >
+        </div>
+
+        <br>
+
+        <button type="submit" class="btn btn-primary">
+            Simpan Perubahan
+        </button>
+
+    </form>
+
+</div>
+
+<br>
+
+<!-- Ubah Role -->
+<div class="card" style="padding:2em;">
+
+    <h3>Ubah Role</h3>
+
+    <form action="/auth/users/<%= detailUser.id %>/role" method="POST">
+
+        <select name="role" class="form-control">
+
+            <option value="admin" <%= detailUser.role === 'admin' ? 'selected' : '' %>>
+                Admin
+            </option>
+
+            <option value="dosen" <%= detailUser.role === 'dosen' ? 'selected' : '' %>>
+                Dosen Ketua
+            </option>
+
+            <option value="anggota" <%= detailUser.role === 'anggota' ? 'selected' : '' %>>
+                Dosen Anggota
+            </option>
+
+        </select>
+
+        <br>
+
+        <button type="submit" class="btn btn-primary">
+            Ubah Role
+        </button>
+
+    </form>
+
+</div>
+
+<br>
+
+<!-- ✅ BARU: Status Aktivasi -->
+<div class="card" style="padding:2em;">
+
+    <h3>Status Akun</h3>
+
+    <p style="margin-bottom:1em;">
+        Status saat ini:
+        <% if(detailUser.status === 'aktif'){ %>
+            <span style="
+                background:#d1fae5;
+                color:#065f46;
+                padding:3px 12px;
+                border-radius:20px;
+                font-weight:600;
+                font-size:0.9em;
+            ">Aktif</span>
+        <% } else { %>
+            <span style="
+                background:#fee2e2;
+                color:#991b1b;
+                padding:3px 12px;
+                border-radius:20px;
+                font-weight:600;
+                font-size:0.9em;
+            ">Nonaktif</span>
+        <% } %>
+    </p>
+
+    <form action="/auth/users/<%= detailUser.id %>/status" method="POST" style="display:inline;">
+
+        <% if(detailUser.status === 'aktif'){ %>
+            <input type="hidden" name="status" value="nonaktif">
+            <button type="submit" class="btn btn-warning">
+                Nonaktifkan Akun
+            </button>
+        <% } else { %>
+            <input type="hidden" name="status" value="aktif">
+            <button type="submit" class="btn btn-success">
+                Aktifkan Akun
+            </button>
+        <% } %>
+
+    </form>
+
+</div>
+
+<br>
+
+<!-- ✅ BARU: Hapus Akun -->
+<div class="card" style="padding:2em; border:1px solid #fca5a5;">
+
+    <h3 style="color:#dc2626;">Hapus Akun</h3>
+
+    <p style="color:#6b7280; margin-bottom:1em;">
+        Tindakan ini <strong>tidak dapat dibatalkan</strong>.
+        Akun pengguna akan dihapus secara permanen.
+    </p>
+
+    <form
+        action="/auth/users/<%= detailUser.id %>/delete"
+        method="POST"
+        onsubmit="return confirm('Yakin ingin menghapus akun <%= detailUser.name %>? Tindakan ini tidak dapat dibatalkan.');"
+    >
+        <button type="submit" class="btn btn-danger">
+            Hapus Akun
+        </button>
+    </form>
+
+</div>
+
+<br>
+
+<a href="/auth/users" class="btn btn-secondary">
+    Kembali
+</a>
+
+<%- include('partials/footer') %>

@@ -13,6 +13,38 @@
 
 'use strict';
 
+const {
+  getAllPenelitian,
+  getPenelitianByDosenId,
+  getPenelitianById,
+  getAnggotaPenelitian,
+  createPenelitian,
+  updatePenelitian,
+  deletePenelitian,
+  addAnggotaPenelitian,
+  updateStatusAnggota,
+  removeAnggotaPenelitian,
+  searchPenelitian,
+  getAllDosen,
+  getAvailableDosen,
+} = require('../config/penelitian');
+
+router.get('/dashboard', checkAuth, async (req, res) => {
+  try {
+    const penelitianList = await getAllPenelitian();
+    res.render('penelitian/dashboard', { user: req.user, penelitianList });
+  } catch (err) {
+    res.status(500).render('error', { message: 'Gagal memuat dashboard penelitian' });
+  }
+});
+
+router.get('/my-penelitian', checkAuth, async (req, res) => {
+  try {
+    const penelitianList = await getPenelitianByDosenId(req.user.id);
+    res.render('penelitian/my-penelitian', { user: req.user, penelitianList });
+  } catch (err) {
+    res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda' });
+  }
 const express = require('express');
 const multer  = require('multer');
 const router  = express.Router();
@@ -64,6 +96,31 @@ router.get('/search', ...requireDosen, ctrl.handleSearch);
 router.get('/import', ...requireDosen, ctrl.showImportForm);
 
 router.post(
+  '/create',
+  checkAuth,
+  checkRole(ROLES.DOSEN, ROLES.ADMIN),
+  validatePenelitianData,
+  async (req, res) => {
+    try {
+      const data = {
+        judul:         req.body.judul,
+        deskripsi:     req.body.deskripsi,
+        tahun_mulai:   req.body.tahun_mulai,
+        tahun_selesai: req.body.tahun_selesai || null,
+        status:        req.body.status || 'draft',
+        ketua_id:      req.user.id,
+      };
+
+      const penelitianId = await createPenelitian(data);
+      res.redirect('/penelitian/my-penelitian');
+    } catch (err) {
+      console.error('Error creating penelitian:', err);
+      res.render('penelitian/create', {
+        user: req.user,
+        error: 'Gagal membuat penelitian. ' + err.message,
+      });
+    }
+  }
   '/import',
   ...requireDosen,
   upload.single('file_excel'),
@@ -99,6 +156,32 @@ router.post(
   ...requireDosen,
   checkOwnership,
   preventIdManipulation,
+  validatePenelitianData,
+  async (req, res) => {
+    try {
+      const penelitianId = req.params.id;
+      const data = {
+        judul:         req.body.judul,
+        deskripsi:     req.body.deskripsi,
+        tahun_mulai:   req.body.tahun_mulai,
+        tahun_selesai: req.body.tahun_selesai || null,
+        status:        req.body.status,
+      };
+
+      const success = await updatePenelitian(penelitianId, data);
+      if (!success) throw new Error('Gagal mengupdate penelitian');
+
+      res.redirect('/penelitian/my-penelitian');
+    } catch (err) {
+      console.error('Error updating penelitian:', err);
+      const penelitian = await getPenelitianById(req.params.id);
+      res.render('penelitian/edit', {
+        user: req.user,
+        penelitian,
+        error: 'Gagal mengupdate penelitian. ' + err.message,
+      });
+    }
+  }
   ctrl.handleUpdate
 );
 
@@ -195,6 +278,42 @@ router.post(
   async (req, res) => {
     try {
       const status = req.body.status;
+
+      if (!['approved', 'rejected'].includes(status)) {
+        throw new Error('Status tidak valid');
+      }
+
+      const success = await updateStatusAnggota(penelitianId, req.user.id, status);
+      if (!success) throw new Error('Gagal mengupdate status keanggotaan');
+
+      res.redirect('/penelitian/my-penelitian');
+    } catch (err) {
+      console.error('Error updating membership:', err);
+      res.status(500).json({ error: 'Gagal mengupdate status keanggotaan. ' + err.message });
+    }
+  }
+);
+
+router.get(
+  '/:id/export',
+  checkAuth,
+  checkOwnership,
+  async (req, res) => {
+    try {
+      const penelitianId = req.params.id;
+      const anggotaList = await getAnggotaPenelitian(penelitianId);
+
+      let csv = 'No,Nama Dosen,Email,Role,Status\n';
+      anggotaList.forEach((anggota, index) => {
+        csv += `${index + 1},"${anggota.dosen_name}","${anggota.dosen_email}","${anggota.role}","${anggota.status}"\n`;
+      });
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="penelitian_${penelitianId}_anggota.csv"`
+      );
+      res.send(csv);
       if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
       await updateStatusAnggota(req.params.id, req.user.id, status);
       return res.redirect(`/penelitian/${req.params.id}`);

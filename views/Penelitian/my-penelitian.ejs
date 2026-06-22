@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1 class="page-title">Data Penelitian Saya</h1>
+    <p class="page-subtitle">Penelitian yang Anda kelola atau ikuti</p>
+</div>
+
+<!-- ✅ FITUR 2 & 3: Undangan Pending untuk Dosen Anggota -->
+<% const undangan = penelitianList ? penelitianList.filter(p => p.my_status === 'pending') : [] %>
+<% if(undangan.length > 0){ %>
+<div class="card" style="padding:1.5em; margin-bottom:20px; border:1px solid #fbbf24;">
+    <h3 style="color:#92400e; margin:0 0 12px 0;">
+        📬 Undangan Penelitian (<%= undangan.length %>)
+    </h3>
+    <% undangan.forEach(p => { %>
+    <div style="display:flex; justify-content:space-between; align-items:center;
+                padding:10px 0; border-bottom:1px solid #f3f4f6; flex-wrap:wrap; gap:10px;">
+        <div>
+            <strong><%= p.judul %></strong>
+            <p style="font-size:0.85em; color:#6b7280; margin:2px 0 0 0;">Ketua: <%= p.ketua_name %></p>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <form action="/penelitian/<%= p.id %>/membership/update" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="approved">
+                <button type="submit" class="btn btn-success" style="font-size:0.85em;">✓ Terima</button>
+            </form>
+            <form action="/penelitian/<%= p.id %>/membership/update" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="rejected">
+                <button type="submit" class="btn btn-danger" style="font-size:0.85em;">✗ Tolak</button>
+            </form>
+        </div>
+    </div>
+    <% }) %>
+</div>
+<% } %>
+
+<!-- Tombol Buat Penelitian (hanya dosen/admin) -->
+<% if(user.role === 'dosen' || user.role === 'admin'){ %>
+<div style="margin-bottom:20px;">
+    <a href="/penelitian/create" class="btn btn-primary" style="color:#fff;">+ Buat Penelitian Baru</a>
+</div>
+<% } %>
+
+<!-- Daftar Penelitian (sudah approved/ketua) -->
+<% const aktif = penelitianList ? penelitianList.filter(p => p.my_status !== 'pending') : [] %>
+<% if(aktif.length > 0){ %>
+    <% aktif.forEach(p => { %>
+    <div class="card" style="padding:1.5em; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+            <div style="flex:1;">
+                <h3 style="margin:0 0 6px 0;">
+                    <a href="/penelitian/<%= p.id %>" style="text-decoration:none; color:inherit;">
+                        <%= p.judul %>
+                    </a>
+                </h3>
+                <p style="color:#6b7280; margin:0 0 6px 0; font-size:0.85em;">
+                    Ketua: <strong><%= p.ketua_name %></strong>
+                    &middot; <%= p.tahun_mulai %><%= p.tahun_selesai ? ' - ' + p.tahun_selesai : '' %>
+                </p>
+                <span class="badge badge-sm badge-role-<%= p.my_role === 'Ketua' ? 'ketua' : 'anggota' %>">
+    <%= p.my_role || 'Ketua' %>
+</span>
+            </div>
+            <span class="badge badge-status-<%= p.status === 'aktif' ? 'aktif' : p.status === 'selesai' ? 'selesai' : 'default' %>">
+    <%= p.status.charAt(0).toUpperCase() + p.status.slice(1) %>
+</span>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="/penelitian/<%= p.id %>" class="btn btn-primary" style="color:#fff; font-size:0.85em;">Detail</a>
+            <!-- ✅ FITUR 1: Tombol Kelola Anggota hanya untuk Ketua/Admin -->
+            <% if(Number(p.ketua_id) === Number(user.id) || user.role === 'admin'){ %>
+            <a href="/penelitian/<%= p.id %>/anggota" class="btn btn-secondary" style="font-size:0.85em;">Kelola Anggota</a>
+            <a href="/penelitian/<%= p.id %>/edit" class="btn btn-secondary" style="font-size:0.85em;">Edit</a>
+            <% } %>
+        </div>
+    </div>
+    <% }) %>
+<% } else if(undangan.length === 0){ %>
+    <div class="card" style="padding:3em; text-align:center;">
+        <p style="color:#9ca3af;">Anda belum memiliki penelitian.</p>
+        <% if(user.role === 'dosen'){ %>
+        <a href="/penelitian/create" class="btn btn-primary" style="color:#fff; margin-top:12px;">Buat Penelitian Pertama</a>
+        <% } %>
+    </div>
+<% } %>
+
+<%- include('../partials/footer') %>
