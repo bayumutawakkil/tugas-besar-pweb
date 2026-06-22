@@ -59,7 +59,7 @@ const createUser = async (email, password, name, role = 'anggota') => {
 const getAllUsers = async () => {
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.execute('SELECT id, email, name, role FROM users');
+    const [rows] = await conn.execute('SELECT id, email, name, role, status FROM users');
     return rows;
   } finally {
     conn.release();
@@ -103,15 +103,86 @@ const updateUserProfile = async (userId, { name, email, password }) => {
   }
 };
 
+const updateUserStatus = async (id, status) => {
+
+  const conn = await pool.getConnection();
+
+  try {
+
+    const [result] = await conn.execute(
+      'UPDATE users SET status = ? WHERE id = ?',
+      [status, id]
+    );
+
+    return result;
+
+  } finally {
+
+    conn.release();
+
+  }
+
+};
+
 const getUserById = async (id) => {
   const conn = await pool.getConnection();
+
   try {
-    const [rows] = await conn.execute('SELECT * FROM users WHERE id = ?', [id]);
+
+    const [rows] = await conn.execute(
+      'SELECT * FROM users WHERE id = ?',
+      [id]
+    );
+
     return rows[0] || null;
+
   } finally {
     conn.release();
   }
 };
+
+const deleteUser = async (id) => {
+
+  const conn = await pool.getConnection();
+
+  try {
+
+    const [result] = await conn.execute(
+      'DELETE FROM users WHERE id = ?',
+      [id]
+    );
+
+    return result;
+
+  } finally {
+    conn.release();
+  }
+};
+
+const searchUsers = async (keyword) => {
+
+  const conn = await pool.getConnection();
+
+  try {
+
+    const [rows] = await conn.execute(
+      `
+      SELECT *
+      FROM users
+      WHERE name LIKE ?
+      OR email LIKE ?
+      `,
+      [`%${keyword}%`, `%${keyword}%`]
+    );
+
+    return rows;
+
+  } finally {
+    conn.release();
+  }
+};
+
+
 
 module.exports = {
   pool,
@@ -123,4 +194,7 @@ module.exports = {
   getAllUsers,
   updateUserRole,
   updateUserProfile,
+  deleteUser,
+  searchUsers,
+  updateUserStatus
 };

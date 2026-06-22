@@ -1,0 +1,121 @@
+<%- include('partials/header') %>
+
+<div class="page-header">
+    <h1 class="page-title">Kelola User</h1>
+    <p class="page-subtitle">
+        Manajemen pengguna sistem penelitian
+    </p>
+</div>
+
+<div class="card" style="padding:2em; margin-bottom:20px;">
+
+    <form action="/auth/users/search" method="GET">
+
+        <div style="display:flex; gap:10px;">
+
+            <input
+                type="text"
+                name="keyword"
+                class="form-control"
+                placeholder="Cari nama atau email pengguna"
+                style="flex:1;"
+            >
+
+            <button type="submit" class="btn btn-primary">
+                Cari
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<div class="card" style="padding:2em;">
+
+    <div class="card-header">
+        <h3 class="card-title">Daftar Pengguna</h3>
+    </div>
+
+    <div class="card-body">
+
+        <table style="width:100%; border-collapse:collapse;">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <% users.forEach(item => { %>
+
+                <tr>
+
+                    <td><%= item.id %></td>
+                    <td><%= item.name %></td>
+                    <td><%= item.email %></td>
+
+                    <td>
+                        <% if(item.role === 'admin'){ %>
+                            Administrator
+                        <% } else if(item.role === 'dosen'){ %>
+                            Dosen Ketua
+                        <% } else if(item.role === 'anggota'){ %>
+                            Dosen Anggota
+                        <% } else { %>
+                            <%= item.role %>
+                        <% } %>
+                    </td>
+
+                    <!-- Status tampil sebagai badge warna, bukan tombol -->
+                    <td>
+                        <% if(item.status === 'aktif'){ %>
+                            <span style="
+                                background:#d1fae5;
+                                color:#065f46;
+                                padding:2px 10px;
+                                border-radius:20px;
+                                font-size:0.85em;
+                                font-weight:600;
+                            ">Aktif</span>
+                        <% } else { %>
+                            <span style="
+                                background:#fee2e2;
+                                color:#991b1b;
+                                padding:2px 10px;
+                                border-radius:20px;
+                                font-size:0.85em;
+                                font-weight:600;
+                            ">Nonaktif</span>
+                        <% } %>
+                    </td>
+
+                    <!-- Hanya tombol Detail, aktivasi pindah ke halaman detail -->
+                    <td>
+                        <a href="/auth/users/<%= item.id %>"
+                           class="btn btn-primary"
+                           style="color:#fff;">
+                            Detail
+                        </a>
+                    </td>
+
+                </tr>
+
+                <% }) %>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<%- include('partials/footer') %>
