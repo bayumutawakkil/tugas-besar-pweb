@@ -1,0 +1,22 @@
+<%
+const phTitle = locals.title || '';
+const phSubtitle = locals.subtitle || '';
+const phToolbar = locals.toolbar || '';
+const phBadge = locals.badge || '';
+const phPendingInvites = locals.pendingInvites || [];
+%>
+<div class="page-header">
+  <div>
+    <h1><%= phTitle %></h1>
+    <% if (phSubtitle) { %><p><%= phSubtitle %></p><% } %>
+  </div>
+  <% if (phToolbar === 'penelitian-all') { %>
+    <div class="page-header-actions"><%- include('_penelitian-toolbar', { showUndangan: false }) %></div>
+  <% } else if (phToolbar === 'penelitian-mine') { %>
+    <div class="page-header-actions"><%- include('_penelitian-toolbar', { showUndangan: true, pendingInvites: phPendingInvites }) %></div>
+  <% } else if (phBadge) { %>
+    <div class="page-badge"><%- phBadge %></div>
+  <% } else if (typeof actionsHtml !== 'undefined' && actionsHtml) { %>
+    <div class="page-header-actions"><%- actionsHtml %></div>
+  <% } %>
+</div>

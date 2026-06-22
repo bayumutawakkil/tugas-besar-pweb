@@ -1,96 +1,62 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<!-- Page Header -->
-<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-  <div>
-    <h1 class="page-title" style="margin:0;">Kelola Pengguna</h1>
-    <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
-      Manajemen akun pengguna sistem penelitian FTI
-    </p>
-  </div>
-  <div style="font-size:0.85rem; color:var(--color-muted-foreground);">
-    Total: <strong><%= users.length %></strong> pengguna
-  </div>
-</div>
+<%- include('../partials/_page-header', {
+  title: 'Kelola Pengguna',
+  subtitle: 'Manajemen akun pengguna sistem penelitian FTI',
+  badge: 'Total: <strong class="text-slate-900">' + users.length + '</strong> pengguna'
+}) %>
 
-<!-- Search Bar -->
-<div class="card" style="padding:1rem; margin-bottom:1.25rem;">
-  <form action="/auth/users/search" method="GET" style="display:flex; gap:0.5rem;">
-    <input
-      type="text"
-      name="keyword"
-      class="input"
-      placeholder="Cari nama atau email pengguna..."
-      style="flex:1;"
-    >
-    <button type="submit" class="btn btn-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      Cari
-    </button>
-    <% if (typeof keyword !== 'undefined' && keyword) { %>
-      <a href="/auth/users" class="btn btn-secondary">Reset</a>
-    <% } %>
-  </form>
-</div>
+<%- include('../partials/_search-bar', {
+  action: '/auth/users/search',
+  inputName: 'keyword',
+  placeholder: 'Cari nama atau email pengguna...',
+  value: typeof keyword !== 'undefined' ? keyword : '',
+  resetHref: (typeof keyword !== 'undefined' && keyword) ? '/auth/users' : ''
+}) %>
 
-<!-- Tabel User -->
-<div class="card">
-  <div style="overflow-x:auto;">
-    <table class="table" style="width:100%; border-collapse:collapse;">
+<div class="card-premium overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="data-table">
       <thead>
         <tr>
-          <th style="width:3rem; text-align:center;">No</th>
+          <th class="text-center w-12">No</th>
           <th>Nama</th>
           <th>Email</th>
-          <th style="text-align:center;">Role</th>
-          <th style="text-align:center;">Status</th>
-          <th style="text-align:center;">Tgl Daftar</th>
-          <th style="text-align:center; width:8rem;">Aksi</th>
+          <th class="text-center">Peran</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Tgl Daftar</th>
+          <th class="text-center w-24">Aksi</th>
         </tr>
       </thead>
       <tbody>
         <% if (users.length === 0) { %>
-          <tr>
-            <td colspan="7" style="text-align:center; padding:2rem; color:var(--color-muted-foreground);">
-              Tidak ada pengguna ditemukan.
-            </td>
-          </tr>
+          <%- include('../partials/_empty-state', {
+            colspan: 7,
+            title: 'Tidak ada pengguna ditemukan',
+            message: 'Coba kata kunci pencarian lain.'
+          }) %>
         <% } else { %>
           <% users.forEach((item, i) => { %>
             <tr>
-              <td style="text-align:center;"><%= i + 1 %></td>
-              <td style="font-weight:600;"><%= item.name %></td>
-              <td style="color:var(--color-muted-foreground); font-size:0.9rem;"><%= item.email %></td>
-
-              <td style="text-align:center;">
-                <% if (item.role === 'admin') { %>
-                  <span class="badge badge-blue">Admin</span>
-                <% } else { %>
-                  <span class="badge badge-gray">Dosen</span>
-                <% } %>
+              <td class="text-center text-slate-500"><%= i + 1 %></td>
+              <td class="font-semibold text-slate-900"><%= item.name %></td>
+              <td class="text-slate-500"><%= item.email %></td>
+              <td class="text-center">
+                <span class="<%= item.role === 'admin' ? 'badge-role-ketua' : 'badge-role-anggota' %> capitalize"><%= item.role %></span>
               </td>
-
-              <td style="text-align:center;">
+              <td class="text-center">
                 <% if (item.status === 'aktif') { %>
-                  <span class="badge badge-green">Aktif</span>
+                  <span class="badge-status-aktif">Aktif</span>
                 <% } else { %>
-                  <span class="badge badge-red">Nonaktif</span>
+                  <span class="badge-status-ditolak">Nonaktif</span>
                 <% } %>
               </td>
-
-              <td style="text-align:center; font-size:0.82rem; color:var(--color-muted-foreground);">
+              <td class="text-center text-slate-500">
                 <%= item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : '-' %>
               </td>
-
-              <td style="text-align:center;">
-                <a href="/auth/users/<%= item.id %>"
-                   class="btn btn-secondary"
-                   style="padding:0.25rem 0.6rem; font-size:0.8rem;">
-                  Detail
-                </a>
+              <td class="text-center">
+                <a href="/auth/users/<%= item.id %>" class="btn-detail">Detail</a>
               </td>
             </tr>
           <% }) %>

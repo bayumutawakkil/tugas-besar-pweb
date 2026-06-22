@@ -1,0 +1,33 @@
+<%
+const esTitle = locals.title || 'Tidak ada data';
+const esMessage = locals.message || '';
+const esCtaHref = locals.ctaHref || '';
+const esCtaLabel = locals.ctaLabel || '';
+const esInCard = locals.inCard !== false;
+const esColspan = locals.colspan || 0;
+%>
+<% if (esColspan) { %>
+  <tr>
+    <td colspan="<%= esColspan %>" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <p class="font-semibold text-slate-700 mb-1"><%= esTitle %></p>
+      <% if (esMessage) { %><p class="text-sm mb-3"><%- esMessage %></p><% } %>
+      <% if (esCtaHref) { %>
+        <a href="<%= esCtaHref %>" class="btn btn-gradient btn-sm"><%= esCtaLabel %></a>
+      <% } %>
+    </td>
+  </tr>
+<% } else { %>
+  <div class="<%= esInCard ? 'card-premium' : '' %> empty-state <%= esInCard ? 'p-12 min-h-[280px] flex flex-col items-center justify-center' : '' %>">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <h3 class="text-lg font-semibold text-slate-800 mb-2"><%= esTitle %></h3>
+    <% if (esMessage) { %><p class="text-sm max-w-sm leading-relaxed mb-4"><%- esMessage %></p><% } %>
+    <% if (esCtaHref) { %>
+      <a href="<%= esCtaHref %>" class="btn btn-secondary"><%= esCtaLabel %></a>
+    <% } %>
+  </div>
+<% } %>

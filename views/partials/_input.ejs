@@ -20,24 +20,24 @@ const inputHint = locals.inputHint || '';
 const inputValue = locals.inputValue || '';
 %>
 
-<div class="field">
-  <label for="<%= inputId %>">
+<div class="flex flex-col gap-1.5 mb-4">
+  <label for="<%= inputId %>" class="text-sm font-semibold text-slate-900">
     <%= inputLabel %>
     <% if (inputRequired) { %>
-      <span class="required" aria-label="required">*</span>
+      <span class="text-red-500" aria-label="required">*</span>
     <% } %>
   </label>
   <input 
     type="<%= inputType %>" 
     id="<%= inputId %>" 
     name="<%= inputName %>" 
-    class="input" 
+    class="form-input" 
     placeholder="<%= inputPlaceholder %>" 
     <% if (inputRequired) { %>required<% } %>
     <% if (inputValue) { %>value="<%= inputValue %>"<% } %>
-    aria-describedby="<%= inputId %>-hint"
+    <% if (inputHint) { %>aria-describedby="<%= inputId %>-hint"<% } %>
   >
   <% if (inputHint) { %>
-    <small id="<%= inputId %>-hint" class="field-hint"><%= inputHint %></small>
+    <small id="<%= inputId %>-hint" class="text-xs text-slate-500"><%= inputHint %></small>
   <% } %>
 </div>

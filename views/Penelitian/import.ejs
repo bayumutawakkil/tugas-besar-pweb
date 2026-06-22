@@ -1,174 +1,135 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<div style="max-width:720px; margin:0 auto;">
+<div class="max-w-3xl mx-auto px-4 sm:px-0">
 
   <!-- Breadcrumb -->
-  <nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
-    <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
-    &rsaquo; Import dari Excel
+  <nav class="text-sm text-slate-500 mb-6 flex items-center gap-2">
+    <a href="/penelitian/my-penelitian" class="text-blue-600 hover:text-blue-700 font-medium">Data Penelitian</a>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    <span class="text-slate-800">Import dari Excel</span>
   </nav>
 
-  <div class="card" style="padding:2rem; margin-bottom:1.25rem;">
-    <h2 style="margin:0 0 0.4rem;">Import Data Penelitian dari Excel</h2>
-    <p style="margin:0 0 1.5rem; color:var(--color-muted-foreground);">
-      Unggah file Excel (.xlsx / .xls) dengan format kolom yang sesuai.
-      Maksimal ukuran file: <strong>5 MB</strong>.
-    </p>
+  <div class="card-premium overflow-hidden mb-8">
+    <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+      <h2 class="text-xl font-bold text-slate-900 m-0">Import Data Penelitian dari Excel</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-0">
+        Unggah file Excel (.xlsx / .xls) dengan format kolom yang sesuai.
+        Maksimal ukuran file: <strong class="text-slate-700">5 MB</strong>.
+      </p>
+    </div>
 
-    <!-- Error -->
-    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
-      <div class="alert alert-destructive" style="margin-bottom:1.25rem;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <div>
-          <% errors.forEach(e => { %><p style="margin:0;"><%= e %></p><% }) %>
+    <div class="p-6">
+      <!-- Hasil Import -->
+      <% if (result) { %>
+        <div class="mb-6 p-4 rounded-xl border flex items-start gap-3 <%= result.skipped > 0 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200' %>">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5">
+            <% if (result.skipped > 0) { %>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            <% } else { %>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            <% } %>
+          </svg>
+          <div>
+            <strong class="font-bold text-sm block mb-2">Proses import selesai</strong>
+            <ul class="list-disc pl-5 m-0 text-sm space-y-1">
+              <li>Total baris dibaca: <strong><%= result.total %></strong></li>
+              <li>Berhasil diimpor: <strong class="text-emerald-700"><%= result.inserted %></strong></li>
+              <li>Dilewati (error): <strong class="<%= result.skipped > 0 ? 'text-red-600' : '' %>"><%= result.skipped %></strong></li>
+            </ul>
+          </div>
         </div>
-      </div>
-    <% } %>
 
-    <!-- Hasil Import -->
-    <% if (result) { %>
-      <div class="alert <%= result.skipped > 0 ? 'alert-warning' : 'alert-success' %>" style="margin-bottom:1.5rem;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <% if (result.skipped > 0) { %>
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          <% } else { %>
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          <% } %>
-        </svg>
-        <div>
-          <strong>Proses import selesai</strong>
-          <ul style="margin:0.4rem 0 0; padding-left:1.2rem;">
-            <li>Total baris dibaca: <strong><%= result.total %></strong></li>
-            <li>Berhasil diimpor: <strong><%= result.inserted %></strong></li>
-            <li>Dilewati (error): <strong><%= result.skipped %></strong></li>
-          </ul>
-        </div>
-      </div>
+        <!-- Detail baris error -->
+        <% if (result.errorRows && result.errorRows.length > 0) { %>
+          <div class="mb-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+              <h4 class="text-sm font-bold text-slate-900 m-0">Detail Baris yang Dilewati</h4>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                    <th class="py-2.5 px-4 text-center w-28">Baris Excel</th>
+                    <th class="py-2.5 px-4">Alasan Error</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <% result.errorRows.forEach(r => { %>
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                      <td class="py-2.5 px-4 text-center font-medium text-slate-700"><%= r.rowNumber %></td>
+                      <td class="py-2.5 px-4 text-red-600"><%= r.errors.join('; ') %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% } %>
 
-      <!-- Detail baris error -->
-      <% if (result.errorRows && result.errorRows.length > 0) { %>
-        <div class="card" style="padding:1rem; margin-bottom:1.5rem; border:1px solid var(--color-border);">
-          <h4 style="margin:0 0 0.75rem; font-size:0.9rem;">Detail Baris yang Dilewati</h4>
-          <table class="table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-            <thead>
-              <tr>
-                <th style="width:5rem; text-align:center;">Baris Excel</th>
-                <th>Alasan Error</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% result.errorRows.forEach(r => { %>
-                <tr>
-                  <td style="text-align:center;"><%= r.rowNumber %></td>
-                  <td><%= r.errors.join('; ') %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
+        <a href="/penelitian/my-penelitian" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm mb-6">
+          Lihat Data Penelitian Saya
+        </a>
       <% } %>
 
-      <a href="/penelitian/my-penelitian" class="btn btn-primary">
-        Lihat Data Penelitian Saya
-      </a>
-    <% } %>
+      <!-- Form Upload -->
+      <form method="POST" action="/penelitian/import" enctype="multipart/form-data" id="importForm">
+        <div class="mb-6">
+          <label for="file_excel" class="block text-sm font-semibold text-slate-900 mb-2">
+            Pilih File Excel <span class="text-red-500">*</span>
+          </label>
 
-    <!-- Form Upload -->
-    <form
-      method="POST"
-      action="/penelitian/import"
-      enctype="multipart/form-data"
-      id="importForm"
-    >
-      <div class="field" style="margin-bottom:1.25rem;">
-        <label for="file_excel" style="display:block; margin-bottom:0.5rem;">
-          Pilih File Excel <span style="color:var(--destructive);">*</span>
-        </label>
+          <!-- Drop Zone -->
+          <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all" onclick="document.getElementById('file_excel').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-slate-400">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p id="dropText" class="text-sm text-slate-600 mb-1">
+              Drag &amp; drop file di sini, atau <span class="text-blue-600 font-semibold">klik untuk memilih</span>
+            </p>
+            <p class="text-xs text-slate-400 m-0">
+              Hanya .xlsx / .xls — Maks. 5 MB
+            </p>
+          </div>
 
-        <!-- Drop Zone -->
-        <div id="dropZone" style="
-          border: 2px dashed var(--color-border);
-          border-radius: var(--radius);
-          padding: 2rem;
-          text-align: center;
-          cursor: pointer;
-          transition: border-color 0.2s, background 0.2s;"
-          onclick="document.getElementById('file_excel').click()"
-          ondragover="handleDragOver(event)"
-          ondragleave="handleDragLeave(event)"
-          ondrop="handleDrop(event)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-               style="margin:0 auto 0.75rem; color:var(--color-muted-foreground);">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <p id="dropText" style="margin:0; color:var(--color-muted-foreground);">
-            Drag &amp; drop file di sini, atau <span style="color:var(--primary); font-weight:600;">klik untuk memilih</span>
-          </p>
-          <p style="margin:0.25rem 0 0; font-size:0.8rem; color:var(--color-muted-foreground);">
-            Hanya .xlsx / .xls — Maks. 5 MB
-          </p>
+          <input type="file" id="file_excel" name="file_excel" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" required onchange="handleFileChange(this)">
         </div>
 
-        <input
-          type="file"
-          id="file_excel"
-          name="file_excel"
-          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-          style="display:none;"
-          required
-          onchange="handleFileChange(this)"
-        >
-      </div>
-
-      <div style="display:flex; gap:0.75rem;">
-        <button type="submit" class="btn btn-primary" id="btnImport">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          Proses Import
-        </button>
-        <a href="/penelitian/my-penelitian" class="btn btn-secondary">Batal</a>
-      </div>
-    </form>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" id="btnImport" class="flex-1 sm:flex-none flex justify-center items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Proses Import</span>
+          </button>
+          <a href="/penelitian/my-penelitian" class="flex-1 sm:flex-none flex justify-center items-center px-5 py-2.5 bg-white text-slate-700 border border-slate-300 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-sm">Batal</a>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Panduan Format -->
-  <div class="card" style="padding:1.5rem;">
-    <h3 style="margin:0 0 0.75rem;">Format File Excel</h3>
-    <p style="margin:0 0 0.75rem; color:var(--color-muted-foreground); font-size:0.9rem;">
-      Baris pertama adalah <strong>header</strong> (akan dilewati). Data dimulai dari baris ke-2.
-    </p>
-    <div style="overflow-x:auto;">
-      <table class="table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+  <div class="card-premium overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+      <h3 class="text-base font-bold text-slate-900 m-0">Format File Excel</h3>
+      <p class="text-sm text-slate-500 mt-1 mb-0">
+        Baris pertama adalah <strong class="text-slate-700">header</strong> (akan dilewati). Data dimulai dari baris ke-2.
+      </p>
+    </div>
+    <div class="overflow-x-auto p-4 sm:p-6">
+      <table class="w-full text-left border-collapse text-sm">
         <thead>
-          <tr>
-            <th style="text-align:center;">Kolom</th>
-            <th>Nama Kolom</th>
-            <th>Keterangan</th>
-            <th style="text-align:center;">Wajib?</th>
+          <tr class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-200">
+            <th class="py-2.5 px-4 text-center w-20">Kolom</th>
+            <th class="py-2.5 px-4">Nama Kolom</th>
+            <th class="py-2.5 px-4">Keterangan</th>
+            <th class="py-2.5 px-4 text-center w-24">Wajib?</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td style="text-align:center;">A</td><td>Judul</td><td>Judul penelitian (maks. 500 karakter)</td><td style="text-align:center;">✓</td></tr>
-          <tr><td style="text-align:center;">B</td><td>Deskripsi</td><td>Abstrak / deskripsi singkat</td><td style="text-align:center;">–</td></tr>
-          <tr><td style="text-align:center;">C</td><td>Tahun Mulai</td><td>Angka tahun, mis: 2024</td><td style="text-align:center;">✓</td></tr>
-          <tr><td style="text-align:center;">D</td><td>Tahun Selesai</td><td>Angka tahun (boleh kosong)</td><td style="text-align:center;">–</td></tr>
-          <tr><td style="text-align:center;">E</td><td>Status</td><td><code>draft</code> / <code>aktif</code> / <code>selesai</code> / <code>ditolak</code></td><td style="text-align:center;">–</td></tr>
+        <tbody class="divide-y divide-slate-100">
+          <tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 px-4 text-center font-medium text-slate-700 bg-slate-50">A</td><td class="py-3 px-4 font-semibold text-slate-900">Judul</td><td class="py-3 px-4 text-slate-600">Judul penelitian (maks. 500 karakter)</td><td class="py-3 px-4 text-center text-emerald-600 font-bold">✓</td></tr>
+          <tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 px-4 text-center font-medium text-slate-700 bg-slate-50">B</td><td class="py-3 px-4 font-semibold text-slate-900">Deskripsi</td><td class="py-3 px-4 text-slate-600">Abstrak / deskripsi singkat</td><td class="py-3 px-4 text-center text-slate-400">–</td></tr>
+          <tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 px-4 text-center font-medium text-slate-700 bg-slate-50">C</td><td class="py-3 px-4 font-semibold text-slate-900">Tahun Mulai</td><td class="py-3 px-4 text-slate-600">Angka tahun, mis: 2024</td><td class="py-3 px-4 text-center text-emerald-600 font-bold">✓</td></tr>
+          <tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 px-4 text-center font-medium text-slate-700 bg-slate-50">D</td><td class="py-3 px-4 font-semibold text-slate-900">Tahun Selesai</td><td class="py-3 px-4 text-slate-600">Angka tahun (boleh kosong)</td><td class="py-3 px-4 text-center text-slate-400">–</td></tr>
+          <tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 px-4 text-center font-medium text-slate-700 bg-slate-50">E</td><td class="py-3 px-4 font-semibold text-slate-900">Status</td><td class="py-3 px-4 text-slate-600"><code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs">draft</code> / <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs">aktif</code> / <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs">selesai</code> / <code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-xs">ditolak</code></td><td class="py-3 px-4 text-center text-slate-400">–</td></tr>
         </tbody>
       </table>
     </div>
@@ -178,22 +139,25 @@
 <script>
 function handleFileChange(input) {
   const dropText = document.getElementById('dropText');
+  const dropZone = document.getElementById('dropZone');
   if (input.files && input.files[0]) {
-    dropText.innerHTML = '📄 <strong>' + input.files[0].name + '</strong> dipilih';
-    document.getElementById('dropZone').style.borderColor = 'var(--primary)';
-    document.getElementById('dropZone').style.background  = 'rgba(37,99,235,0.05)';
+    dropText.innerHTML = '<span class="flex items-center justify-center gap-2 text-blue-700"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <strong class="font-semibold">' + input.files[0].name + '</strong></span>';
+    dropZone.classList.add('border-blue-500', 'bg-blue-50/50');
+    dropZone.classList.remove('border-slate-300');
   }
 }
 
 function handleDragOver(e) {
   e.preventDefault();
-  document.getElementById('dropZone').style.borderColor = 'var(--primary)';
-  document.getElementById('dropZone').style.background  = 'rgba(37,99,235,0.05)';
+  const dropZone = document.getElementById('dropZone');
+  dropZone.classList.add('border-blue-500', 'bg-blue-50/50');
+  dropZone.classList.remove('border-slate-300');
 }
 
 function handleDragLeave(e) {
-  document.getElementById('dropZone').style.borderColor = 'var(--color-border)';
-  document.getElementById('dropZone').style.background  = '';
+  const dropZone = document.getElementById('dropZone');
+  dropZone.classList.remove('border-blue-500', 'bg-blue-50/50');
+  dropZone.classList.add('border-slate-300');
 }
 
 function handleDrop(e) {
@@ -207,8 +171,9 @@ function handleDrop(e) {
 
 document.getElementById('importForm').addEventListener('submit', function() {
   const btn = document.getElementById('btnImport');
+  btn.classList.add('opacity-70', 'cursor-not-allowed');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Memproses...';
+  btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>Memproses...</span>`;
 });
 </script>
 

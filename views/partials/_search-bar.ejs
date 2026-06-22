@@ -1,0 +1,43 @@
+<%
+const sbAction = locals.action || '/';
+const sbMethod = locals.method || 'GET';
+const sbInputName = locals.inputName || 'q';
+const sbPlaceholder = locals.placeholder || 'Cari...';
+const sbValue = locals.value || '';
+const sbSubmitLabel = locals.submitLabel || 'Cari';
+const sbResetHref = locals.resetHref || '';
+const sbHidden = locals.hidden || {};
+const sbShowScope = locals.showScope || false;
+const sbScope = locals.scope || 'all';
+%>
+<div class="card-premium p-4 mb-6">
+  <form action="<%= sbAction %>" method="<%= sbMethod %>" class="flex flex-wrap sm:flex-nowrap gap-3">
+    <div class="relative flex-1 min-w-[200px]">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <input
+        type="text"
+        name="<%= sbInputName %>"
+        class="form-input pl-11 bg-slate-50 focus:bg-white"
+        placeholder="<%= sbPlaceholder %>"
+        value="<%= sbValue %>"
+      >
+      <% Object.entries(sbHidden).forEach(([k, v]) => { %>
+        <input type="hidden" name="<%= k %>" value="<%= v %>">
+      <% }) %>
+    </div>
+    <% if (sbShowScope) { %>
+      <select name="scope" class="form-select sm:w-48">
+        <option value="all"  <%= sbScope === 'all'  ? 'selected' : '' %>>Semua Penelitian</option>
+        <option value="mine" <%= sbScope === 'mine' ? 'selected' : '' %>>Penelitian Saya</option>
+      </select>
+    <% } %>
+    <button type="submit" class="btn btn-search"><%= sbSubmitLabel %></button>
+    <% if (sbResetHref) { %>
+      <a href="<%= sbResetHref %>" class="btn btn-outline btn-secondary">Reset</a>
+    <% } %>
+  </form>
+</div>

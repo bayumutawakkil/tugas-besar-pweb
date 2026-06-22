@@ -1,94 +1,63 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<!-- Page Header -->
-<div class="page-header" style="margin-bottom:1.25rem;">
-  <h1 class="page-title" style="margin:0;">Hasil Pencarian</h1>
-  <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
-    Menampilkan hasil untuk kata kunci:
-    <strong>"<%= keyword %>"</strong>
-    <% if (scope === 'mine') { %>(hanya penelitian saya)<% } %>
-    — ditemukan <strong><%= penelitianList.length %></strong> hasil
-  </p>
-</div>
+<%- include('../partials/_page-header', {
+  title: 'Hasil Pencarian',
+  subtitle: 'Kata kunci: "' + keyword + '"' + (scope === 'mine' ? ' (hanya penelitian saya)' : '') + ' — ditemukan ' + penelitianList.length + ' hasil'
+}) %>
 
-<!-- Search Bar (Refine) -->
-<div class="card" style="padding:1rem; margin-bottom:1.25rem;">
-  <form action="/penelitian/search" method="GET" style="display:flex; gap:0.5rem;">
-    <input
-      type="text"
-      name="q"
-      class="input"
-      placeholder="Cari ulang..."
-      value="<%= keyword %>"
-      style="flex:1;"
-    >
-    <select name="scope" class="input" style="width:auto;">
-      <option value="all"  <%= scope === 'all'  ? 'selected' : '' %>>Semua Penelitian</option>
-      <option value="mine" <%= scope === 'mine' ? 'selected' : '' %>>Penelitian Saya</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Cari</button>
-    <a href="/penelitian/dashboard" class="btn btn-secondary">Reset</a>
-  </form>
-</div>
+<%- include('../partials/_search-bar', {
+  action: '/penelitian/search',
+  placeholder: 'Cari ulang...',
+  value: keyword,
+  submitLabel: 'Cari Ulang',
+  showScope: true,
+  scope: scope,
+  resetHref: '/penelitian/dashboard'
+}) %>
 
-<!-- Results -->
 <% if (penelitianList.length === 0) { %>
-  <div class="card" style="padding:3rem; text-align:center;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
-         fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-         style="margin:0 auto 1rem; color:var(--color-muted-foreground);">
-      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
-    <p style="color:var(--color-muted-foreground); margin:0;">
-      Tidak ada penelitian yang cocok dengan kata kunci
-      <strong>"<%= keyword %>"</strong>.
-    </p>
-    <div style="margin-top:1rem;">
-      <a href="/penelitian/dashboard" class="btn btn-secondary">Kembali ke Daftar</a>
-    </div>
-  </div>
+  <%- include('../partials/_empty-state', {
+    title: 'Pencarian Tidak Ditemukan',
+    message: 'Tidak ada penelitian yang cocok dengan kata kunci <strong class="text-slate-700">"' + keyword + '"</strong>. Coba kata kunci lain.',
+    ctaHref: '/penelitian/dashboard',
+    ctaLabel: 'Kembali ke Daftar'
+  }) %>
 <% } else { %>
-  <div class="card">
-    <div style="overflow-x:auto;">
-      <table class="table" style="width:100%; border-collapse:collapse;">
+  <div class="card-premium overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="data-table">
         <thead>
           <tr>
-            <th style="width:3rem; text-align:center;">No</th>
+            <th class="text-center w-12">No</th>
             <th>Judul Penelitian</th>
             <th>Ketua</th>
-            <th style="text-align:center;">Tahun</th>
-            <th style="text-align:center;">Anggota</th>
-            <th style="text-align:center;">Status</th>
-            <th style="text-align:center; width:7rem;">Aksi</th>
+            <th class="text-center">Tahun</th>
+            <th class="text-center">Anggota</th>
+            <th class="text-center">Status</th>
+            <th class="text-center w-24">Aksi</th>
           </tr>
         </thead>
         <tbody>
           <% penelitianList.forEach((p, i) => { %>
             <tr>
-              <td style="text-align:center;"><%= i + 1 %></td>
+              <td class="text-center text-slate-500"><%= i + 1 %></td>
               <td>
-                <a href="/penelitian/<%= p.id %>"
-                   style="font-weight:600; color:var(--primary); text-decoration:none;">
-                  <!-- Highlight keyword dalam judul -->
-                  <%
-                    const re = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                    const highlighted = p.judul.replace(re, '<mark>$1</mark>');
-                  %>
-                  <%- highlighted %>
+                <a href="/penelitian/<%= p.id %>" class="font-semibold text-blue-600 hover:text-blue-800 leading-snug block">
+                  <% const re = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); %>
+                  <%- p.judul.replace(re, '<mark class="bg-yellow-200 text-slate-900 rounded-sm px-0.5">$1</mark>') %>
                 </a>
               </td>
-              <td><%= p.ketua_name || '-' %></td>
-              <td style="text-align:center;">
-                <%= p.tahun_mulai %>
-                <% if (p.tahun_selesai) { %>– <%= p.tahun_selesai %><% } %>
+              <td class="text-slate-700"><%= p.ketua_name || '-' %></td>
+              <td class="text-center text-slate-700">
+                <%= p.tahun_mulai %><% if (p.tahun_selesai) { %>–<%= p.tahun_selesai %><% } %>
               </td>
-              <td style="text-align:center;"><%= p.total_anggota || 0 %></td>
-              <td style="text-align:center;">
+              <td class="text-center text-slate-700"><%= p.total_anggota || 0 %></td>
+              <td class="text-center">
                 <%- include('../partials/_badge-status', { status: p.status }) %>
               </td>
-              <td style="text-align:center;">
-                <a href="/penelitian/<%= p.id %>" class="btn btn-secondary"
-                   style="padding:0.25rem 0.6rem; font-size:0.8rem;">Detail</a>
+              <td class="text-center">
+                <a href="/penelitian/<%= p.id %>" class="btn-detail">Detail</a>
               </td>
             </tr>
           <% }) %>
@@ -97,14 +66,5 @@
     </div>
   </div>
 <% } %>
-
-<style>
-mark {
-  background: #FEF08A;
-  color: inherit;
-  border-radius: 2px;
-  padding: 0 2px;
-}
-</style>
 
 <%- include('../partials/footer') %>

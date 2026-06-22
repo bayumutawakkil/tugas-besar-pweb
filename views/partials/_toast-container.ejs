@@ -1,0 +1,22 @@
+<div class="toast-container" id="toast-container">
+  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
+    <%- include('_alert', {
+      type:    flashType === 'success' ? 'success' : 'destructive',
+      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
+      message: flashMsg
+    }) %>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <%- include('_alert', { type: 'destructive', title: 'Gagal', message: error }) %>
+  <% } %>
+  <% if (typeof success !== 'undefined' && success) { %>
+    <%- include('_alert', { type: 'success', title: 'Berhasil', message: success }) %>
+  <% } %>
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <%- include('_alert', {
+      type: 'destructive',
+      title: 'Periksa kembali',
+      message: errors.join(' • ')
+    }) %>
+  <% } %>
+</div>

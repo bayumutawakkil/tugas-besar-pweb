@@ -1,81 +1,187 @@
 'use strict';
 
-const db = require('../config/database');
+const db = require('../config.js').pool;
+const { MODEL_TYPE, ensureLecturerProfile, resolveUserName } = require('./dbHelpers');
+
+function mapStatusToNode(dbStatus) {
+  if (dbStatus === 'proposed') return 'draft';
+  if (dbStatus === 'ongoing') return 'aktif';
+  if (dbStatus === 'completed') return 'selesai';
+  return 'draft';
+}
+
+function mapStatusToDb(nodeStatus) {
+  const statusMap = {
+    draft: 'proposed',
+    aktif: 'ongoing',
+    selesai: 'completed',
+    ditolak: 'proposed',
+  };
+  return statusMap[nodeStatus || 'draft'] || 'proposed';
+}
+
+function mapPenelitianRow(row) {
+  if (!row) return null;
+  return { ...row, status: mapStatusToNode(row.raw_status) };
+}
+
+const ROLE_KETUA = 'Ketua';
+const ROLE_ANGGOTA = 'Anggota';
+const ROLE_PENDING = 'Pending';
+
+const KETUA_JOIN = `
+  LEFT JOIN research_members k ON p.id = k.research_id AND k.role = '${ROLE_KETUA}'
+  LEFT JOIN users u ON k.lecturer_id = u.id
+`;
+
+function mapMembershipStatus(role) {
+  return role === ROLE_PENDING ? 'pending' : 'approved';
+}
+
+function mapMembershipRole(role) {
+  if (role === ROLE_PENDING) return ROLE_ANGGOTA;
+  return role;
+}
 
 // ── Ambil semua penelitian ───────────────────────────────────────────────────
 async function getAllPenelitian() {
   const [rows] = await db.query(`
     SELECT
-      p.*,
+      p.id, p.title AS judul, p.description AS deskripsi,
+      YEAR(p.start_date) AS tahun_mulai, YEAR(p.end_date) AS tahun_selesai,
+      p.status AS raw_status,
+      p.created_at, p.updated_at,
+      k.lecturer_id AS ketua_id,
       u.name  AS ketua_name,
       u.email AS ketua_email,
       COUNT(DISTINCT ap.id) AS total_anggota,
-      COUNT(DISTINCT CASE WHEN ap.status = 'approved' THEN ap.id END) AS anggota_approved
-    FROM penelitian p
-    LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN penelitian_anggota ap ON p.id = ap.penelitian_id
-    GROUP BY p.id
+      COUNT(DISTINCT ap.id) AS anggota_approved
+    FROM research p
+    ${KETUA_JOIN}
+    LEFT JOIN research_members ap ON p.id = ap.research_id
+    GROUP BY p.id, k.lecturer_id, u.name, u.email
     ORDER BY p.created_at DESC
   `);
-  return rows;
+  return rows.map(mapPenelitianRow);
 }
 
 // ── Ambil penelitian berdasarkan dosen (ketua atau anggota) ─────────────────
 async function getPenelitianByDosenId(dosenId) {
   const [rows] = await db.query(`
     SELECT DISTINCT
-      p.*,
+      p.id, p.title AS judul, p.description AS deskripsi,
+      YEAR(p.start_date) AS tahun_mulai, YEAR(p.end_date) AS tahun_selesai,
+      p.status AS raw_status,
+      p.created_at, p.updated_at,
+      k.lecturer_id AS ketua_id,
       u.name  AS ketua_name,
       u.email AS ketua_email,
-      ap.role   AS my_role,
-      ap.status AS my_status,
+      CASE WHEN ap.role = '${ROLE_PENDING}' THEN '${ROLE_ANGGOTA}' ELSE ap.role END AS my_role,
+      CASE WHEN ap.role = '${ROLE_PENDING}' THEN 'pending' ELSE 'approved' END AS my_status,
       COUNT(DISTINCT ap2.id) AS total_anggota,
-      COUNT(DISTINCT CASE WHEN ap2.status = 'approved' THEN ap2.id END) AS anggota_approved
-    FROM penelitian p
-    LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN penelitian_anggota ap  ON p.id = ap.penelitian_id  AND ap.dosen_id  = ?
-    LEFT JOIN penelitian_anggota ap2 ON p.id = ap2.penelitian_id
-    WHERE p.ketua_id = ? OR ap.dosen_id = ?
-    GROUP BY p.id
+      COUNT(DISTINCT ap2.id) AS anggota_approved
+    FROM research p
+    ${KETUA_JOIN}
+    LEFT JOIN research_members ap  ON p.id = ap.research_id  AND ap.lecturer_id  = ?
+    LEFT JOIN research_members ap2 ON p.id = ap2.research_id
+    WHERE k.lecturer_id = ? OR ap.lecturer_id = ?
+    GROUP BY p.id, k.lecturer_id, u.name, u.email, ap.role
     ORDER BY p.created_at DESC
   `, [dosenId, dosenId, dosenId]);
-  return rows;
+  return rows.map(mapPenelitianRow);
+}
+
+// ── Ambil undangan penelitian yang menunggu konfirmasi ─────────────────────
+async function getPendingInvitations(dosenId) {
+  const [rows] = await db.query(`
+    SELECT
+      p.id, p.title AS judul, p.description AS deskripsi,
+      YEAR(p.start_date) AS tahun_mulai, YEAR(p.end_date) AS tahun_selesai,
+      p.status AS raw_status,
+      p.created_at, p.updated_at,
+      k.lecturer_id AS ketua_id,
+      u.name  AS ketua_name,
+      u.email AS ketua_email,
+      ap.created_at AS invited_at
+    FROM research p
+    ${KETUA_JOIN}
+    INNER JOIN research_members ap
+      ON p.id = ap.research_id AND ap.lecturer_id = ? AND ap.role = '${ROLE_PENDING}'
+    ORDER BY ap.created_at DESC
+  `, [dosenId]);
+
+  return rows.map((row) => ({
+    ...mapPenelitianRow(row),
+    my_role: ROLE_ANGGOTA,
+    my_status: 'pending',
+    invited_at: row.invited_at,
+  }));
+}
+
+// ── Ambil statistik penelitian ───────────────────────────────────────────────
+async function getPenelitianStats(dosenId = null) {
+  const list = dosenId
+    ? await getPenelitianByDosenId(dosenId)
+    : await getAllPenelitian();
+
+  const activeList = dosenId
+    ? list.filter((p) => p.my_status !== 'pending')
+    : list;
+
+  return {
+    total: activeList.length,
+    aktif: activeList.filter((p) => p.status === 'aktif').length,
+    selesai: activeList.filter((p) => p.status === 'selesai').length,
+    draft: activeList.filter((p) => p.status === 'draft').length,
+  };
 }
 
 // ── Ambil satu penelitian berdasarkan ID ────────────────────────────────────
 async function getPenelitianById(penelitianId) {
   const [rows] = await db.query(`
     SELECT
-      p.*,
+      p.id, p.title AS judul, p.description AS deskripsi,
+      YEAR(p.start_date) AS tahun_mulai, YEAR(p.end_date) AS tahun_selesai,
+      p.status AS raw_status,
+      p.created_at, p.updated_at,
+      k.lecturer_id AS ketua_id,
       u.name  AS ketua_name,
       u.email AS ketua_email
-    FROM penelitian p
-    LEFT JOIN users u ON p.ketua_id = u.id
+    FROM research p
+    ${KETUA_JOIN}
     WHERE p.id = ?
   `, [penelitianId]);
-  return rows[0] || null;
+
+  return mapPenelitianRow(rows[0]);
 }
 
 // ── Ambil daftar anggota penelitian ─────────────────────────────────────────
 async function getAnggotaPenelitian(penelitianId) {
   const [rows] = await db.query(`
     SELECT
-      ap.*,
+      ap.id, ap.research_id AS penelitian_id, ap.lecturer_id AS dosen_id,
+      ap.role,
+      CASE WHEN ap.role = '${ROLE_PENDING}' THEN 'pending' ELSE 'approved' END AS status,
+      ap.created_at, ap.updated_at,
       u.name  AS dosen_name,
       u.email AS dosen_email
-    FROM penelitian_anggota ap
-    LEFT JOIN users u ON ap.dosen_id = u.id
-    WHERE ap.penelitian_id = ?
-    ORDER BY ap.role DESC, ap.status, ap.created_at
+    FROM research_members ap
+    LEFT JOIN users u ON ap.lecturer_id = u.id
+    WHERE ap.research_id = ?
+    ORDER BY ap.role DESC, ap.created_at
   `, [penelitianId]);
-  return rows;
+  return rows.map((row) => ({
+    ...row,
+    role: mapMembershipRole(row.role),
+    status: mapMembershipStatus(row.role),
+  }));
 }
 
 // ── Cek apakah user adalah ketua ────────────────────────────────────────────
 async function isKetuaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
-    'SELECT id FROM penelitian WHERE id = ? AND ketua_id = ?',
-    [penelitianId, userId]
+    'SELECT id FROM research_members WHERE research_id = ? AND lecturer_id = ? AND role = ?',
+    [penelitianId, userId, ROLE_KETUA]
   );
   return rows.length > 0;
 }
@@ -83,7 +189,7 @@ async function isKetuaPenelitian(penelitianId, userId) {
 // ── Cek apakah user adalah anggota ──────────────────────────────────────────
 async function isAnggotaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
-    'SELECT id FROM penelitian_anggota WHERE penelitian_id = ? AND dosen_id = ?',
+    'SELECT id FROM research_members WHERE research_id = ? AND lecturer_id = ?',
     [penelitianId, userId]
   );
   return rows.length > 0;
@@ -92,32 +198,42 @@ async function isAnggotaPenelitian(penelitianId, userId) {
 // ── Ambil role user dalam penelitian ────────────────────────────────────────
 async function getUserRoleInPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
-    'SELECT role, status FROM penelitian_anggota WHERE penelitian_id = ? AND dosen_id = ?',
+    'SELECT role FROM research_members WHERE research_id = ? AND lecturer_id = ?',
     [penelitianId, userId]
   );
-  return rows[0] || null;
+  if (!rows[0]) return null;
+  return {
+    role: mapMembershipRole(rows[0].role),
+    status: mapMembershipStatus(rows[0].role),
+  };
 }
 
 // ── Buat penelitian baru ─────────────────────────────────────────────────────
 async function createPenelitian(data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id } = data;
 
+  const dbStatus = mapStatusToDb(status);
+  const startDate = tahun_mulai ? `${tahun_mulai}-01-01` : '1970-01-01';
+  const endDate = tahun_selesai ? `${tahun_selesai}-12-31` : null;
+
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
+    const ketuaName = await resolveUserName(conn, ketua_id);
+    await ensureLecturerProfile(conn, ketua_id, ketuaName);
+
     const [result] = await conn.query(
-      `INSERT INTO penelitian (judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [judul, deskripsi, tahun_mulai, tahun_selesai, status || 'draft', ketua_id]
+      `INSERT INTO research (title, description, start_date, end_date, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+      [judul, deskripsi, startDate, endDate, dbStatus]
     );
 
     const penelitianId = result.insertId;
 
-    // Otomatis tambah ketua sebagai anggota dengan status approved
     await conn.query(
-      `INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
-       VALUES (?, ?, 'Ketua', 'approved')`,
+      `INSERT INTO research_members (research_id, lecturer_id, role, created_at, updated_at)
+       VALUES (?, ?, '${ROLE_KETUA}', NOW(), NOW())`,
       [penelitianId, ketua_id]
     );
 
@@ -135,30 +251,46 @@ async function createPenelitian(data) {
 async function updatePenelitian(penelitianId, data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status } = data;
 
+  const dbStatus = mapStatusToDb(status);
+  const startDate = tahun_mulai ? `${tahun_mulai}-01-01` : '1970-01-01';
+  const endDate = tahun_selesai ? `${tahun_selesai}-12-31` : null;
+
   const [result] = await db.query(
-    `UPDATE penelitian
-     SET judul = ?, deskripsi = ?, tahun_mulai = ?, tahun_selesai = ?, status = ?
+    `UPDATE research
+     SET title = ?, description = ?, start_date = ?, end_date = ?, status = ?, updated_at = NOW()
      WHERE id = ?`,
-    [judul, deskripsi, tahun_mulai, tahun_selesai, status, penelitianId]
+    [judul, deskripsi, startDate, endDate, dbStatus, penelitianId]
   );
   return result.affectedRows > 0;
 }
 
 // ── Hapus penelitian ─────────────────────────────────────────────────────────
 async function deletePenelitian(penelitianId) {
-  const [result] = await db.query(
-    'DELETE FROM penelitian WHERE id = ?',
-    [penelitianId]
-  );
-  return result.affectedRows > 0;
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query('DELETE FROM research_members WHERE research_id = ?', [penelitianId]);
+    const [result] = await conn.query('DELETE FROM research WHERE id = ?', [penelitianId]);
+    await conn.commit();
+    return result.affectedRows > 0;
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
 }
 
 // ── Tambah anggota ke penelitian ─────────────────────────────────────────────
 async function addAnggotaPenelitian(penelitianId, dosenId) {
+  const conn = await db.getConnection();
   try {
-    const [result] = await db.query(
-      `INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
-       VALUES (?, ?, 'Anggota', 'pending')`,
+    const dosenName = await resolveUserName(conn, dosenId);
+    await ensureLecturerProfile(conn, dosenId, dosenName);
+
+    const [result] = await conn.query(
+      `INSERT INTO research_members (research_id, lecturer_id, role, created_at, updated_at)
+       VALUES (?, ?, '${ROLE_PENDING}', NOW(), NOW())`,
       [penelitianId, dosenId]
     );
     return result.insertId;
@@ -167,24 +299,40 @@ async function addAnggotaPenelitian(penelitianId, dosenId) {
       throw new Error('Dosen sudah terdaftar sebagai anggota penelitian ini.');
     }
     throw err;
+  } finally {
+    conn.release();
   }
 }
 
 // ── Update status keanggotaan (approve / reject) ─────────────────────────────
 async function updateStatusAnggota(penelitianId, dosenId, status) {
-  const [result] = await db.query(
-    `UPDATE penelitian_anggota SET status = ?
-     WHERE penelitian_id = ? AND dosen_id = ?`,
-    [status, penelitianId, dosenId]
-  );
-  return result.affectedRows > 0;
+  if (status === 'approved') {
+    const [result] = await db.query(
+      `UPDATE research_members
+       SET role = '${ROLE_ANGGOTA}', updated_at = NOW()
+       WHERE research_id = ? AND lecturer_id = ? AND role = '${ROLE_PENDING}'`,
+      [penelitianId, dosenId]
+    );
+    return result.affectedRows > 0;
+  }
+
+  if (status === 'rejected') {
+    const [result] = await db.query(
+      `DELETE FROM research_members
+       WHERE research_id = ? AND lecturer_id = ? AND role = '${ROLE_PENDING}'`,
+      [penelitianId, dosenId]
+    );
+    return result.affectedRows > 0;
+  }
+
+  return false;
 }
 
 // ── Hapus anggota dari penelitian ────────────────────────────────────────────
 async function removeAnggotaPenelitian(penelitianId, dosenId) {
   const [result] = await db.query(
-    `DELETE FROM penelitian_anggota
-     WHERE penelitian_id = ? AND dosen_id = ? AND role = 'Anggota'`,
+    `DELETE FROM research_members
+     WHERE research_id = ? AND lecturer_id = ? AND role IN ('${ROLE_ANGGOTA}', '${ROLE_PENDING}')`,
     [penelitianId, dosenId]
   );
   return result.affectedRows > 0;
@@ -194,35 +342,45 @@ async function removeAnggotaPenelitian(penelitianId, dosenId) {
 async function searchPenelitian(keyword, dosenId = null) {
   let query = `
     SELECT DISTINCT
-      p.*,
+      p.id, p.title AS judul, p.description AS deskripsi,
+      YEAR(p.start_date) AS tahun_mulai, YEAR(p.end_date) AS tahun_selesai,
+      p.status AS raw_status,
+      p.created_at, p.updated_at,
+      k.lecturer_id AS ketua_id,
       u.name  AS ketua_name,
       u.email AS ketua_email,
       COUNT(DISTINCT ap.id) AS total_anggota,
-      COUNT(DISTINCT CASE WHEN ap.status = 'approved' THEN ap.id END) AS anggota_approved
-    FROM penelitian p
-    LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN penelitian_anggota ap ON p.id = ap.penelitian_id
-    WHERE (p.judul LIKE ? OR p.deskripsi LIKE ? OR u.name LIKE ?)
+      COUNT(DISTINCT ap.id) AS anggota_approved
+    FROM research p
+    ${KETUA_JOIN}
+    LEFT JOIN research_members ap ON p.id = ap.research_id
+    WHERE (p.title LIKE ? OR p.description LIKE ? OR u.name LIKE ?)
   `;
 
   const params = [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`];
 
   if (dosenId) {
-    query += ' AND (p.ketua_id = ? OR ap.dosen_id = ?)';
+    query += ' AND (k.lecturer_id = ? OR ap.lecturer_id = ?)';
     params.push(dosenId, dosenId);
   }
 
-  query += ' GROUP BY p.id ORDER BY p.created_at DESC';
+  query += ' GROUP BY p.id, k.lecturer_id, u.name, u.email ORDER BY p.created_at DESC';
 
   const [rows] = await db.query(query, params);
-  return rows;
+  return rows.map(mapPenelitianRow);
 }
 
 // ── Ambil semua dosen (untuk dropdown tambah anggota) ───────────────────────
 async function getAllDosen() {
-  const [rows] = await db.query(
-    "SELECT id, name, email FROM users WHERE role = 'dosen' ORDER BY name"
-  );
+  const [rows] = await db.query(`
+    SELECT u.id, u.name, u.email
+    FROM users u
+    INNER JOIN lecturers l ON l.id = u.id
+    LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+    LEFT JOIN roles r ON r.id = mhr.role_id
+    WHERE COALESCE(r.name, 'dosen') = 'dosen'
+    ORDER BY u.name
+  `, [MODEL_TYPE]);
   return rows;
 }
 
@@ -231,11 +389,15 @@ async function getAvailableDosen(penelitianId) {
   const [rows] = await db.query(
     `SELECT u.id, u.name, u.email
      FROM users u
-     WHERE u.role = 'dosen' AND u.id NOT IN (
-       SELECT dosen_id FROM penelitian_anggota WHERE penelitian_id = ?
-     )
+     INNER JOIN lecturers l ON l.id = u.id
+     LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+     LEFT JOIN roles r ON r.id = mhr.role_id
+     WHERE COALESCE(r.name, 'dosen') = 'dosen'
+       AND u.id NOT IN (
+         SELECT lecturer_id FROM research_members WHERE research_id = ?
+       )
      ORDER BY u.name`,
-    [penelitianId]
+    [MODEL_TYPE, penelitianId]
   );
   return rows;
 }
@@ -243,6 +405,8 @@ async function getAvailableDosen(penelitianId) {
 module.exports = {
   getAllPenelitian,
   getPenelitianByDosenId,
+  getPendingInvitations,
+  getPenelitianStats,
   getPenelitianById,
   getAnggotaPenelitian,
   isKetuaPenelitian,

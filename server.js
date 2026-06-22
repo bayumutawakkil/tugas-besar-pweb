@@ -8,6 +8,8 @@ const path         = require('path');
 const indexRoutes      = require('./routes/index');
 const authRoutes       = require('./routes/auth');
 const penelitianRoutes = require('./routes/penelitian');
+const apiRoutes        = require('./routes/api');
+const { attachViewLocals } = require('./middleware/viewLocals');
 
 const app = express();
 
@@ -20,11 +22,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(attachViewLocals);
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/',          indexRoutes);
 app.use('/auth',      authRoutes);
 app.use('/penelitian', penelitianRoutes);
+app.use('/api',        apiRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {

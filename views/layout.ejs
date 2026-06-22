@@ -3,35 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexusAuth - Tugas Besar PWEB</title>
-  <!-- Basecoat UI -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/all.min.js" defer></script>
+  <title>Penelitian FTI - Tugas Besar PWEB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body style="background-color: var(--color-background); color: var(--color-foreground);">
-  <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 5%; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem;">
-    <div>
-      <a href="/" style="font-size: 1.25rem; font-weight: bold; text-decoration: none; color: inherit;">NexusAuth</a>
-    </div>
-    <div style="display: flex; gap: 1rem;">
-      <% if (typeof user !== 'undefined' && user) { %>
-        <a href="/auth/profile" class="btn btn-link">Profil</a>
-        <% if (user.role === 'admin') { %>
-          <a href="/auth/users" class="btn btn-link">Kelola User</a>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-white border-b border-slate-200 shadow-xs sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <a href="/" class="text-blue-600 font-extrabold text-[17px] tracking-tight no-underline hover:opacity-80 transition-opacity">
+        Penelitian FTI
+      </a>
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user) { %>
+          <a href="/auth/profile" class="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:border-blue-300 hover:text-blue-600 transition-all no-underline">Profil</a>
+          <% if (user.role === 'admin') { %>
+            <a href="/auth/users" class="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:border-blue-300 hover:text-blue-600 transition-all no-underline">Kelola User</a>
+          <% } %>
+          <a href="/auth/logout" class="px-3 py-1.5 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors no-underline">Logout</a>
+        <% } else if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+          <a href="/auth/profile" class="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:border-blue-300 hover:text-blue-600 transition-all no-underline">Profil</a>
+          <a href="/auth/logout" class="px-3 py-1.5 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors no-underline">Logout</a>
+        <% } else { %>
+          <a href="/auth/login" class="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:border-blue-300 hover:text-blue-600 transition-all no-underline">Masuk</a>
+          <a href="/auth/register" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors no-underline">Daftar</a>
         <% } %>
-        <a href="/auth/logout" class="btn btn-destructive">Logout</a>
-      <% } else if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-        <a href="/auth/profile" class="btn btn-link">Profil</a>
-        <a href="/auth/logout" class="btn btn-destructive">Logout</a>
-      <% } else { %>
-        <a href="/auth/login" class="btn btn-primary">Login</a>
-        <a href="/auth/register" class="btn btn-primary">Daftar</a>
-      <% } %>
+      </div>
     </div>
   </nav>
 
-  <main style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
+  <main class="max-w-7xl mx-auto w-full px-6 py-10 flex-1">
     <%- body %>
   </main>
+
 </body>
 </html>

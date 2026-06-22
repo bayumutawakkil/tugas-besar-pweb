@@ -1,17 +1,33 @@
 'use strict';
 
 const bcrypt = require('bcryptjs');
-const db = require('../config/database');
+const db = require('../config.js').pool;
+const { MODEL_TYPE, mapDbStatus, ensureRoles, ensureLecturerProfile } = require('./dbHelpers');
+
+function normalizeUser(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    role: row.role || 'dosen',
+    status: mapDbStatus(row.status),
+  };
+}
 
 // ── Baca satu user berdasarkan email ────────────────────────────────────────
 async function getUser(email) {
   const conn = await db.getConnection();
   try {
-    const [rows] = await conn.execute(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-    return rows[0] || null;
+    const [rows] = await conn.execute(`
+      SELECT u.*, 
+             COALESCE(r.name, 'dosen') AS role,
+             COALESCE(e.status, 'active') AS status
+      FROM users u
+      LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+      LEFT JOIN roles r ON r.id = mhr.role_id
+      LEFT JOIN employees e ON e.id = u.id
+      WHERE u.email = ?
+    `, [MODEL_TYPE, email]);
+    return normalizeUser(rows[0]);
   } finally {
     conn.release();
   }
@@ -21,11 +37,17 @@ async function getUser(email) {
 async function getUserById(id) {
   const conn = await db.getConnection();
   try {
-    const [rows] = await conn.execute(
-      'SELECT * FROM users WHERE id = ?',
-      [id]
-    );
-    return rows[0] || null;
+    const [rows] = await conn.execute(`
+      SELECT u.*, 
+             COALESCE(r.name, 'dosen') AS role,
+             COALESCE(e.status, 'active') AS status
+      FROM users u
+      LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+      LEFT JOIN roles r ON r.id = mhr.role_id
+      LEFT JOIN employees e ON e.id = u.id
+      WHERE u.id = ?
+    `, [MODEL_TYPE, id]);
+    return normalizeUser(rows[0]);
   } finally {
     conn.release();
   }
@@ -36,11 +58,33 @@ async function createUser(email, password, name, role = 'dosen') {
   const hashedPassword = await bcrypt.hash(password, 10);
   const conn = await db.getConnection();
   try {
-    await conn.execute(
-      'INSERT INTO users (email, password, name, role, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
-      [email, hashedPassword, name, role]
+    await conn.beginTransaction();
+    await ensureRoles(conn);
+
+    const [result] = await conn.execute(
+      'INSERT INTO users (email, password, name, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+      [email, hashedPassword, name]
     );
+    const userId = result.insertId;
+
+    const [roleRows] = await conn.execute(
+      'SELECT id FROM roles WHERE name = ? AND guard_name = ?',
+      [role, 'web']
+    );
+    if (roleRows.length > 0) {
+      await conn.execute(
+        'INSERT INTO model_has_roles (role_id, model_type, model_id) VALUES (?, ?, ?)',
+        [roleRows[0].id, MODEL_TYPE, userId]
+      );
+    }
+
+    await ensureLecturerProfile(conn, userId, name);
+
+    await conn.commit();
     return true;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
   } finally {
     conn.release();
   }
@@ -50,10 +94,18 @@ async function createUser(email, password, name, role = 'dosen') {
 async function getAllUsers() {
   const conn = await db.getConnection();
   try {
-    const [rows] = await conn.execute(
-      'SELECT id, name, email, role, status, created_at, updated_at FROM users ORDER BY created_at DESC'
-    );
-    return rows;
+    const [rows] = await conn.execute(`
+      SELECT u.id, u.name, u.email, 
+             COALESCE(r.name, 'dosen') AS role,
+             COALESCE(e.status, 'active') AS status,
+             u.created_at, u.updated_at
+      FROM users u
+      LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+      LEFT JOIN roles r ON r.id = mhr.role_id
+      LEFT JOIN employees e ON e.id = u.id
+      ORDER BY u.created_at DESC
+    `, [MODEL_TYPE]);
+    return rows.map(normalizeUser);
   } finally {
     conn.release();
   }
@@ -63,14 +115,19 @@ async function getAllUsers() {
 async function searchUsers(keyword) {
   const conn = await db.getConnection();
   try {
-    const [rows] = await conn.execute(
-      `SELECT id, name, email, role, status, created_at, updated_at
-       FROM users
-       WHERE name LIKE ? OR email LIKE ?
-       ORDER BY created_at DESC`,
-      [`%${keyword}%`, `%${keyword}%`]
-    );
-    return rows;
+    const [rows] = await conn.execute(`
+      SELECT u.id, u.name, u.email, 
+             COALESCE(r.name, 'dosen') AS role,
+             COALESCE(e.status, 'active') AS status,
+             u.created_at, u.updated_at
+      FROM users u
+      LEFT JOIN model_has_roles mhr ON mhr.model_id = u.id AND mhr.model_type = ?
+      LEFT JOIN roles r ON r.id = mhr.role_id
+      LEFT JOIN employees e ON e.id = u.id
+      WHERE u.name LIKE ? OR u.email LIKE ?
+      ORDER BY u.created_at DESC
+    `, [MODEL_TYPE, `%${keyword}%`, `%${keyword}%`]);
+    return rows.map(normalizeUser);
   } finally {
     conn.release();
   }
@@ -83,11 +140,22 @@ async function updateUserRole(userId, role) {
 
   const conn = await db.getConnection();
   try {
-    const [result] = await conn.execute(
-      'UPDATE users SET role = ?, updated_at = NOW() WHERE id = ?',
-      [role, userId]
+    await ensureRoles(conn);
+    await conn.execute(
+      'DELETE FROM model_has_roles WHERE model_id = ? AND model_type = ?',
+      [userId, MODEL_TYPE]
     );
-    return result.affectedRows > 0;
+    const [roleRows] = await conn.execute(
+      'SELECT id FROM roles WHERE name = ? AND guard_name = ?',
+      [role, 'web']
+    );
+    if (roleRows.length > 0) {
+      await conn.execute(
+        'INSERT INTO model_has_roles (role_id, model_type, model_id) VALUES (?, ?, ?)',
+        [roleRows[0].id, MODEL_TYPE, userId]
+      );
+    }
+    return true;
   } finally {
     conn.release();
   }
@@ -109,6 +177,12 @@ async function updateUserProfile(userId, { name, email, password }) {
         [name, email, userId]
       );
     }
+
+    await conn.execute(
+      'UPDATE employees SET name = ?, updated_at = NOW() WHERE id = ?',
+      [name, userId]
+    );
+
     return true;
   } finally {
     conn.release();
@@ -120,11 +194,16 @@ async function updateUserStatus(id, status) {
   const validStatus = ['aktif', 'nonaktif'];
   if (!validStatus.includes(status)) throw new Error('Status tidak valid');
 
+  const dbStatus = status === 'aktif' ? 'active' : 'inactive';
+
   const conn = await db.getConnection();
   try {
+    const userName = (await conn.execute('SELECT name FROM users WHERE id = ?', [id]))[0][0]?.name || 'Unknown';
+    await ensureLecturerProfile(conn, id, userName);
+
     const [result] = await conn.execute(
-      'UPDATE users SET status = ?, updated_at = NOW() WHERE id = ?',
-      [status, id]
+      'UPDATE employees SET status = ?, updated_at = NOW() WHERE id = ?',
+      [dbStatus, id]
     );
     return result.affectedRows > 0;
   } finally {

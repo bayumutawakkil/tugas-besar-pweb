@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET, getUser } = require('./config');
+const { JWT_SECRET } = require('./config');
 const router = express.Router();
 
 // ===== HOME / LANDING PAGE =====

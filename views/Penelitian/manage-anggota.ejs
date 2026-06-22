@@ -1,125 +1,123 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<div style="max-width:800px; margin:0 auto;">
+<div class="max-w-4xl mx-auto">
 
-  <!-- Breadcrumb -->
-  <nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
-    <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
-    &rsaquo;
-    <a href="/penelitian/<%= penelitian.id %>" style="color:var(--primary); text-decoration:none;">Detail</a>
-    &rsaquo; Kelola Anggota
-  </nav>
+  <%- include('../partials/_breadcrumb', {
+    items: [
+      { label: 'Data Penelitian', href: '/penelitian/my-penelitian' },
+      { label: 'Detail Penelitian', href: '/penelitian/' + penelitian.id },
+      { label: 'Kelola Anggota' }
+    ]
+  }) %>
 
-  <!-- Error -->
-  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
-    <div class="alert alert-destructive" style="margin-bottom:1rem;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <div><% errors.forEach(e => { %><p style="margin:0;"><%= e %></p><% }) %></div>
+  <%- include('../partials/_form-errors') %>
+
+  <div class="card-premium p-6 sm:p-8 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h2 class="text-xl font-bold text-slate-900 m-0 tracking-tight">Kelola Anggota</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-0">
+        Penelitian: <strong class="text-slate-700 font-semibold"><%= penelitian.judul %></strong>
+      </p>
     </div>
-  <% } %>
-
-  <div class="card" style="padding:1.5rem; margin-bottom:1.25rem;">
-    <h2 style="margin:0 0 0.25rem;">Kelola Anggota</h2>
-    <p style="margin:0; color:var(--color-muted-foreground);">
-      Penelitian: <strong><%= penelitian.judul %></strong>
-    </p>
+    <%- include('../partials/_badge-status', { status: penelitian.status }) %>
   </div>
 
-  <!-- Form Tambah Anggota -->
-  <div class="card" style="padding:1.5rem; margin-bottom:1.25rem;">
-    <h3 style="margin:0 0 1rem;">Tambah Anggota</h3>
-    <form method="POST" action="/penelitian/<%= penelitian.id %>/anggota/add"
-          style="display:flex; gap:0.5rem; align-items:flex-end;">
-      <div class="field" style="flex:1; margin:0;">
-        <label for="dosen_id">Pilih Dosen</label>
-        <select id="dosen_id" name="dosen_id" class="input" required>
-          <option value="">-- Pilih Dosen --</option>
-          <% availableDosen.forEach(d => { %>
-            <option value="<%= d.id %>"><%= d.name %> (<%= d.email %>)</option>
-          <% }) %>
-        </select>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    
+    <!-- Form Tambah Anggota (KOLOM KIRI di Desktop) -->
+    <div class="lg:col-span-1">
+      <div class="card-premium p-6">
+        <h3 class="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-3">Tambah Anggota</h3>
+        <form method="POST" action="/penelitian/<%= penelitian.id %>/anggota/add" class="flex flex-col gap-4">
+          <div>
+            <label for="dosen_id" class="block text-sm font-semibold text-slate-900 mb-1.5">Pilih Dosen</label>
+            <select id="dosen_id" name="dosen_id" class="form-select" required>
+              <option value="">-- Pilih Dosen --</option>
+              <% availableDosen.forEach(d => { %>
+                <option value="<%= d.id %>"><%= d.name %> (<%= d.email %>)</option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-gradient w-full" <%= availableDosen.length === 0 ? 'disabled' : '' %>>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Tambahkan Anggota
+          </button>
+        </form>
+        <% if (availableDosen.length === 0) { %>
+          <div class="mt-4 p-3 bg-slate-50 border border-slate-100 rounded-lg flex items-start gap-2 text-sm text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5 text-slate-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Semua dosen sudah terdaftar di penelitian ini.
+          </div>
+        <% } %>
       </div>
-      <button type="submit" class="btn btn-primary" style="flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="8.5" cy="7" r="4"/>
-          <line x1="20" y1="8" x2="20" y2="14"/>
-          <line x1="23" y1="11" x2="17" y2="11"/>
-        </svg>
-        Tambahkan
-      </button>
-    </form>
-    <% if (availableDosen.length === 0) { %>
-      <p style="margin:0.75rem 0 0; font-size:0.85rem; color:var(--color-muted-foreground);">
-        Semua dosen sudah terdaftar di penelitian ini.
-      </p>
-    <% } %>
-  </div>
+    </div>
 
-  <!-- Daftar Anggota -->
-  <div class="card" style="padding:1.5rem;">
-    <h3 style="margin:0 0 1rem;">Daftar Anggota (<%= anggotaList.length %>)</h3>
-    <% if (anggotaList.length === 0) { %>
-      <p style="text-align:center; color:var(--color-muted-foreground); padding:1rem 0;">
-        Belum ada anggota terdaftar.
-      </p>
-    <% } else { %>
-      <div style="overflow-x:auto;">
-        <table class="table" style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th>Nama</th>
-              <th>Email</th>
-              <th style="text-align:center;">Peran</th>
-              <th style="text-align:center;">Status</th>
-              <th style="text-align:center; width:7rem;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% anggotaList.forEach(a => { %>
-              <tr>
-                <td><%= a.dosen_name || '-' %></td>
-                <td style="font-size:0.82rem; color:var(--color-muted-foreground);"><%= a.dosen_email || '-' %></td>
-                <td style="text-align:center;">
-                  <span class="badge <%= a.role === 'Ketua' ? 'badge-blue' : 'badge-gray' %>">
-                    <%= a.role %>
-                  </span>
-                </td>
-                <td style="text-align:center;">
-                  <% if (a.status === 'approved') { %>
-                    <span class="badge badge-green">Diterima</span>
-                  <% } else if (a.status === 'rejected') { %>
-                    <span class="badge badge-red">Ditolak</span>
-                  <% } else { %>
-                    <span class="badge badge-yellow">Menunggu</span>
-                  <% } %>
-                </td>
-                <td style="text-align:center;">
-                  <% if (a.role !== 'Ketua') { %>
-                    <form method="POST" action="/penelitian/<%= penelitian.id %>/anggota/remove"
-                          onsubmit="return confirm('Hapus anggota <%= a.dosen_name %>?')">
-                      <input type="hidden" name="dosen_id" value="<%= a.dosen_id %>">
-                      <button type="submit" class="btn btn-destructive"
-                              style="padding:0.2rem 0.5rem; font-size:0.78rem;">
-                        Hapus
-                      </button>
-                    </form>
-                  <% } else { %>
-                    <span style="font-size:0.78rem; color:var(--color-muted-foreground);">–</span>
-                  <% } %>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
+    <!-- Daftar Anggota (KOLOM KANAN di Desktop) -->
+    <div class="lg:col-span-2">
+      <div class="card-premium overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <h3 class="text-base font-bold text-slate-900 m-0">Daftar Anggota</h3>
+          <span class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm"><%= anggotaList.length %> Orang</span>
+        </div>
+
+        <% if (anggotaList.length === 0) { %>
+          <div class="p-10 text-center text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-slate-300"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Belum ada anggota terdaftar.
+          </div>
+        <% } else { %>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                  <th class="py-3 px-6">Nama & Email</th>
+                  <th class="py-3 px-6 text-center">Peran</th>
+                  <th class="py-3 px-6 text-center">Status</th>
+                  <th class="py-3 px-6 text-center w-24">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-sm">
+                <% anggotaList.forEach(a => { %>
+                  <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="py-3 px-6">
+                      <div class="font-semibold text-slate-900"><%= a.dosen_name || '-' %></div>
+                      <div class="text-xs text-slate-500 mt-0.5"><%= a.dosen_email || '-' %></div>
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                      <span class="<%= a.role === 'Ketua' ? 'badge-role-ketua' : 'badge-role-anggota' %>">
+                        <%= a.role %>
+                      </span>
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                      <% if (a.status === 'approved') { %>
+                        <span class="badge-status-aktif">Diterima</span>
+                      <% } else if (a.status === 'rejected') { %>
+                        <span class="badge-status-ditolak">Ditolak</span>
+                      <% } else { %>
+                        <span class="badge-pending">Menunggu</span>
+                      <% } %>
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                      <% if (a.role !== 'Ketua') { %>
+                        <form method="POST" action="/penelitian/<%= penelitian.id %>/anggota/remove" onsubmit="return confirm('Hapus anggota <%= a.dosen_name %>?')" class="m-0">
+                          <input type="hidden" name="dosen_id" value="<%= a.dosen_id %>">
+                          <button type="submit" class="inline-flex items-center justify-center px-2 py-1.5 text-xs font-semibold text-red-600 bg-white border border-red-200 rounded hover:bg-red-50 transition-colors shadow-sm" title="Hapus Anggota">
+                            Hapus
+                          </button>
+                        </form>
+                      <% } else { %>
+                        <span class="text-slate-300 font-medium" title="Ketua tidak bisa dihapus">Ketua</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
       </div>
-    <% } %>
+    </div>
   </div>
 
 </div>

@@ -1,0 +1,42 @@
+<div id="modal-delete" class="fixed inset-0 z-[9999] hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+  <div class="card-premium w-full max-w-md overflow-hidden animate-fade-in">
+    <div class="p-6">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 m-0">Konfirmasi Hapus</h3>
+      </div>
+      <p id="modal-delete-msg" class="text-sm text-slate-600 mb-0">
+        Apakah Anda yakin ingin menghapus penelitian ini?
+      </p>
+    </div>
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="closeDeleteModal()">Batal</button>
+      <form id="form-delete" method="POST" action="" class="m-0">
+        <button type="submit" class="btn btn-sm" style="background:#dc2626;color:#fff;border-color:#dc2626;">Ya, Hapus Permanen</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+if (!window.confirmDelete) {
+  window.confirmDelete = function(id, judul) {
+    document.getElementById('modal-delete-msg').innerHTML =
+      'Apakah Anda yakin ingin menghapus penelitian <strong class="text-slate-900">"' + judul + '"</strong>? Semua data dan anggota akan terhapus.';
+    document.getElementById('form-delete').action = '/penelitian/' + id + '/delete';
+    const modal = document.getElementById('modal-delete');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+  window.closeDeleteModal = function() {
+    const modal = document.getElementById('modal-delete');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+  };
+  document.getElementById('modal-delete')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+}
+</script>

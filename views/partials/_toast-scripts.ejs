@@ -1,0 +1,85 @@
+<script>
+(function() {
+  if (window.showToast) return;
+
+  window.dismissToast = function(toastId) {
+    var el = document.getElementById(toastId);
+    if (!el) return;
+    el.classList.add('toast-hiding');
+    setTimeout(function() { if (el) el.remove(); }, 400);
+  };
+
+  window.showToast = function(type, title, message, duration) {
+    var container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+
+    var toastId = 'toast-' + Math.random().toString(36).slice(2, 11);
+    var alertType = type === 'error' ? 'destructive' : type;
+    var toastDuration = duration || (alertType === 'destructive' ? 6500 : 4500);
+
+    var icons = {
+      destructive: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+      success: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+      warning: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      info: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+
+    var toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = 'toast toast-' + alertType;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML =
+      '<div class="toast-icon">' + (icons[alertType] || icons.info) + '</div>' +
+      '<div class="toast-content"><h4>' + title + '</h4><p>' + message + '</p></div>' +
+      '<button type="button" class="toast-close" aria-label="Tutup">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>' +
+      '<div class="toast-progress"></div>';
+
+    toast.querySelector('.toast-close').addEventListener('click', function() {
+      window.dismissToast(toastId);
+    });
+
+    container.appendChild(toast);
+
+    setTimeout(function() { toast.classList.add('toast-visible'); }, 10);
+
+    var bar = toast.querySelector('.toast-progress');
+    if (bar) {
+      bar.style.transition = 'width ' + toastDuration + 'ms linear';
+      setTimeout(function() { bar.style.width = '0%'; }, 50);
+    }
+
+    setTimeout(function() { window.dismissToast(toastId); }, toastDuration);
+  };
+
+  function readCookie(name) {
+    var match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  function clearCookie(name) {
+    document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax';
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var successMsg = readCookie('toast_success');
+    var errorMsg = readCookie('toast_error');
+
+    if (successMsg) {
+      showToast('success', 'Berhasil', successMsg);
+      clearCookie('toast_success');
+    }
+
+    if (errorMsg) {
+      showToast('error', 'Gagal', errorMsg);
+      clearCookie('toast_error');
+    }
+  });
+})();
+</script>

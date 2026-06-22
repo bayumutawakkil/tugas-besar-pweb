@@ -1,31 +1,50 @@
 <%- include('partials/header') %>
 
-<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
-  <div class="card animate-fade-in" style="width: 100%; max-width: 500px;">
-    <header style="text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-      <h2>Terjadi Kesalahan</h2>
-      <p>Sistem kami sedang mengalami masalah</p>
-    </header>
-    <section>
-      <div class="alert-destructive" style="display: block;">
-        <div>
-          <h3 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">Pesan Error</h3>
-          <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">
-            <%= typeof message !== 'undefined' ? message : 'Maaf, terjadi kesalahan pada sistem kami. Silakan coba beberapa saat lagi.' %>
-          </p>
-        </div>
+<div class="flex justify-center items-center min-h-[70vh] px-4 py-12">
+  <div class="card-premium animate-fade-in w-full max-w-[480px] overflow-hidden relative">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500"></div>
+
+    <div class="px-8 py-8 text-center border-b border-slate-100 bg-white">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 text-red-600 mb-4 shadow-sm border border-red-100 mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
       </div>
-      
-      <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
-        <a href="/" class="btn btn-primary" style="text-align: center; width: 100%;">🏠 Kembali ke Beranda</a>
-        <button onclick="history.back()" class="btn btn-secondary" style="text-align: center; width: 100%;">← Halaman Sebelumnya</button>
+      <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Terjadi Kesalahan</h2>
+      <p class="text-sm text-slate-500">Sistem kami sedang mengalami masalah</p>
+    </div>
+
+    <div class="p-8 bg-slate-50/30">
+      <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 mb-6">
+        <h3 class="text-sm font-bold mb-1.5 m-0">Pesan Error</h3>
+        <p class="text-sm m-0 leading-relaxed opacity-90">
+          <%= typeof message !== 'undefined' ? message : 'Maaf, terjadi kesalahan pada sistem kami. Silakan coba beberapa saat lagi.' %>
+        </p>
       </div>
 
-      <p style="margin-top: 2rem; text-align: center; color: var(--color-muted-foreground); font-size: 0.875rem;">
+      <div class="flex flex-col gap-3">
+        <a href="/" class="btn btn-primary w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Kembali ke Beranda
+        </a>
+        <button type="button" onclick="history.back()" class="btn btn-secondary w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Halaman Sebelumnya
+        </button>
+      </div>
+
+      <p class="mt-6 text-center text-slate-400 text-xs">
         Jika masalah berlanjut, silakan hubungi administrator sistem.
       </p>
-    </section>
+    </div>
   </div>
 </div>
 

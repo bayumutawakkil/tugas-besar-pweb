@@ -1,29 +1,21 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<div class="toast-container" id="toast-container">
-  <% if (typeof error !== 'undefined' && error) { %>
-    <%- include('../partials/_alert', { 
-      type: 'destructive', 
-      title: 'Login Gagal', 
-      message: error 
-    }) %>
-  <% } %>
-  <% if (typeof success !== 'undefined' && success) { %>
-    <%- include('../partials/_alert', { 
-      type: 'success', 
-      title: 'Berhasil', 
-      message: success 
-    }) %>
-  <% } %>
-</div>
-
-<div class="flex justify-center items-center" style="min-height: 70vh;">
-  <div class="card animate-fade-in" style="width: 100%; max-width: 450px;">
-    <header>
-      <h2>Masuk ke Akun</h2>
-      <p>Selamat datang! Silakan login untuk mengelola penelitian Anda.</p>
-    </header>
-    <section>
+<div class="flex justify-center items-center min-h-[70vh] px-4 py-12">
+  <div class="card-premium animate-fade-in w-full max-w-[450px] overflow-hidden relative">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+    <div class="px-8 py-8 text-center border-b border-slate-100 bg-white">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-4 shadow-sm border border-blue-100 mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Selamat Datang Kembali</h2>
+      <p class="text-sm text-slate-500">Silakan login untuk mengakses portal penelitian</p>
+    </div>
+    <div class="p-8 bg-slate-50/30">
       <form action="/auth/login" method="POST" id="loginForm" class="flex flex-col gap-4">
         <%- include('../partials/_input', {
           inputType: 'email',
@@ -44,29 +36,29 @@
           inputHint: 'Minimal 6 karakter'
         }) %>
         
-        <button type="submit" class="btn btn-primary w-full btn-lg" style="margin-top: var(--space-2);">
-          <span class="btn-text">Login</span>
+        <button type="submit" class="w-full mt-2 flex justify-center items-center gap-2 px-4 py-3 text-[15px] font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+          <span>Login</span>
         </button>
       </form>
       
-      <hr class="divider">
+      <hr class="my-6 border-slate-200">
       
       <div class="text-center">
-        <p style="margin: 0; color: var(--color-muted-foreground); font-size: var(--text-sm);">
+        <p class="text-sm text-slate-500">
           Belum punya akun? 
-          <a href="/auth/register" style="color: var(--primary-500); font-weight: 600; text-decoration: none;">Daftar sekarang</a>
+          <a href="/auth/register" class="text-blue-600 font-semibold hover:text-blue-700 transition-colors">Daftar sekarang</a>
         </p>
       </div>
-    </section>
+    </div>
   </div>
 </div>
 
 <script>
 document.getElementById('loginForm').addEventListener('submit', function(e) {
   const btn = this.querySelector('button[type="submit"]');
-  btn.classList.add('loading');
+  btn.classList.add('opacity-70', 'cursor-not-allowed');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> <span>Memproses...</span>';
+  btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>Memproses...</span>`;
 });
 </script>
 

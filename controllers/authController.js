@@ -5,6 +5,7 @@ const bcrypt  = require('bcryptjs');
 const { JWT_SECRET } = require('../middleware/auth');
 const { ROLES }      = require('../middleware/acl');
 const userModel      = require('../models/userModel');
+const penelitianRepo = require('../models/penelitianModel');
 
 // ── Register ─────────────────────────────────────────────────────────────────
 async function showRegister(req, res) {
@@ -98,7 +99,31 @@ function handleLogout(req, res) {
 async function showDashboard(req, res) {
   try {
     const user = await userModel.getUser(req.user.email);
-    return res.render('auth/dashboard', { user });
+    const flashType = req.query.flash_type || null;
+    const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
+
+    const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
+    const pendingInvites = await penelitianRepo.getPendingInvitations(req.user.id);
+    const penelitianStats = await penelitianRepo.getPenelitianStats(req.user.id);
+
+    let totalUsers = null;
+    if (user.role === ROLES.ADMIN) {
+      const users = await userModel.getAllUsers();
+      totalUsers = users.length;
+    }
+
+    return res.render('auth/dashboard', {
+      user,
+      stats: {
+        totalUsers,
+        totalPenelitian: penelitianStats.total,
+        aktifPenelitian: penelitianStats.aktif,
+        pendingInvites: pendingInvites.length,
+      },
+      pendingInvites,
+      flashType,
+      flashMsg,
+    });
   } catch (err) {
     console.error('[Auth] showDashboard error:', err);
     return res.status(500).render('error', { message: 'Gagal memuat dashboard.' });

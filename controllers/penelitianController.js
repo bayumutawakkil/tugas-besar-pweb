@@ -15,9 +15,8 @@
 
 'use strict';
 
-const ExcelJS      = require('exceljs');
-const PDFDocument  = require('pdfkit');
-const db           = require('../config/database');
+const ExcelJS        = require('exceljs');
+const PDFDocument    = require('pdfkit');
 const penelitianRepo = require('../models/penelitianModel');
 
 // ─────────────────────────────────────────────
@@ -112,10 +111,12 @@ async function showDashboard(req, res) {
     const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
 
     const penelitianList = await penelitianRepo.getAllPenelitian();
+    const stats = await penelitianRepo.getPenelitianStats();
 
     return res.render('penelitian/dashboard', {
       user: req.user,
       penelitianList,
+      stats,
       flashType,
       flashMsg,
     });
@@ -139,11 +140,12 @@ async function showMyPenelitian(req, res) {
     const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
 
     const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
-    const pendingInvites = penelitianList.filter(p => p.my_status === 'pending');
+    const pendingInvites = await penelitianRepo.getPendingInvitations(req.user.id);
+    const activePenelitianList = penelitianList.filter((p) => p.my_status !== 'pending');
 
     return res.render('penelitian/my-penelitian', {
       user: req.user,
-      penelitianList,
+      penelitianList: activePenelitianList,
       pendingInvites,
       flashType,
       flashMsg,
@@ -163,8 +165,7 @@ async function showInvitations(req, res) {
     const flashType = req.query.flash_type || null;
     const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
 
-    const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
-    const pendingInvites = penelitianList.filter(p => p.my_status === 'pending');
+    const pendingInvites = await penelitianRepo.getPendingInvitations(req.user.id);
 
     return res.render('penelitian/invitations', {
       user: req.user,
@@ -518,37 +519,15 @@ async function handleImport(req, res) {
       }
     }
 
-    // ── Bulk insert dalam transaksi ──
+    // ── Bulk insert via model (tabel research / research_members) ──
     let insertedCount = 0;
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
 
-      for (const row of validRows) {
-        const [result] = await connection.execute(
-          `INSERT INTO penelitian (judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [row.judul, row.deskripsi, row.tahun_mulai, row.tahun_selesai, row.status, req.user.id]
-        );
-
-        const penelitianId = result.insertId;
-
-        // Auto-tambah ketua sebagai anggota approved
-        await connection.execute(
-          `INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
-           VALUES (?, ?, 'Ketua', 'approved')`,
-          [penelitianId, req.user.id]
-        );
-
-        insertedCount++;
-      }
-
-      await connection.commit();
-    } catch (dbErr) {
-      await connection.rollback();
-      throw dbErr;
-    } finally {
-      connection.release();
+    for (const row of validRows) {
+      await penelitianRepo.createPenelitian({
+        ...row,
+        ketua_id: req.user.id,
+      });
+      insertedCount++;
     }
 
     return res.render('penelitian/import', {
@@ -814,12 +793,39 @@ async function handleRemoveAnggota(req, res) {
 async function handleUpdateMembership(req, res) {
   try {
     const status = req.body.status;
-    if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
-    await penelitianRepo.updateStatusAnggota(req.params.id, req.user.id, status);
-    return res.redirect(`/penelitian/${req.params.id}`);
+    if (!['approved', 'rejected'].includes(status)) {
+      return redirectWithMessage(
+        res,
+        `/penelitian/${req.params.id}`,
+        'error',
+        'Status undangan tidak valid.'
+      );
+    }
+
+    const success = await penelitianRepo.updateStatusAnggota(req.params.id, req.user.id, status);
+    if (!success) {
+      return redirectWithMessage(
+        res,
+        '/penelitian/undangan',
+        'error',
+        'Undangan tidak ditemukan atau sudah diproses.'
+      );
+    }
+
+    const target = status === 'approved' ? `/penelitian/${req.params.id}` : '/penelitian/undangan';
+    const message = status === 'approved'
+      ? 'Undangan diterima. Anda sekarang menjadi anggota penelitian.'
+      : 'Undangan penelitian ditolak.';
+
+    return redirectWithMessage(res, target, 'success', message);
   } catch (err) {
     console.error('[Controller] handleUpdateMembership error:', err);
-    return res.status(500).json({ error: err.message });
+    return redirectWithMessage(
+      res,
+      '/penelitian/undangan',
+      'error',
+      'Gagal memproses undangan: ' + err.message
+    );
   }
 }
 
@@ -847,6 +853,7 @@ async function exportAnggotaCsv(req, res) {
 module.exports = {
   showDashboard,
   showMyPenelitian,
+  showInvitations,
   showCreateForm,
   handleCreate,
   showDetail,

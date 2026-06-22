@@ -1,200 +1,116 @@
 <%- include('../partials/header') %>
+<%- include('../partials/_toast-container') %>
 
-<!-- Toast Notifications -->
-<div class="toast-container" id="toast-container">
-  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
-    <%- include('../partials/_alert', {
-      type:    flashType === 'success' ? 'success' : 'destructive',
-      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
-      message: flashMsg
-    }) %>
-  <% } %>
-</div>
+<%- include('../partials/_page-header', {
+  title: 'Data Penelitian Saya',
+  subtitle: 'Penelitian yang Anda kelola sebagai ketua atau anggota',
+  toolbar: 'penelitian-mine',
+  pendingInvites: pendingInvites
+}) %>
 
-<!-- Page Header -->
-<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-  <div>
-    <h1 class="page-title" style="margin:0;">Data Penelitian Saya</h1>
-    <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
-      Penelitian yang Anda kelola sebagai ketua atau anggota
-    </p>
-  </div>
-  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-    <a href="/penelitian/export/excel" class="btn btn-secondary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Excel
-    </a>
-    <a href="/penelitian/export/pdf" class="btn btn-secondary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-      </svg>
-      PDF
-    </a>
-    <a href="/penelitian/import" class="btn btn-secondary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/>
-        <line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
-      Import
-    </a>
-    <a href="/penelitian/create" class="btn btn-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-      Tambah Penelitian
-    </a>
-    <a href="/penelitian/undangan" class="btn btn-secondary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"/><path d="M12 4h9"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/><path d="M8 16h3"/><path d="M8 8h3"/>
-      </svg>
-      Undangan
-    </a>
-  </div>
-</div>
-
-<!-- Search Bar -->
-<div class="card" style="padding:1rem; margin-bottom:1.25rem;">
-  <form action="/penelitian/search" method="GET" style="display:flex; gap:0.5rem;">
-    <input
-      type="text"
-      name="q"
-      class="input"
-      placeholder="Cari di penelitian saya..."
-      style="flex:1;"
-    >
-    <input type="hidden" name="scope" value="mine">
-    <button type="submit" class="btn btn-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      Cari
-    </button>
-  </form>
-</div>
+<%- include('../partials/_search-bar', {
+  action: '/penelitian/search',
+  placeholder: 'Cari di penelitian saya...',
+  hidden: { scope: 'mine' }
+}) %>
 
 <% if (Array.isArray(pendingInvites) && pendingInvites.length > 0) { %>
-  <div class="card" style="margin-bottom:1.25rem; padding:1.5rem;">
-    <h2 style="margin:0 0 1rem;">Undangan Penelitian</h2>
-    <p style="margin:0 0 1rem; color:var(--color-muted-foreground);">
-      Berikut penelitian yang menunggu Anda menerima atau menolak ajakan bergabung.
-    </p>
-    <div style="overflow-x:auto;">
-      <table class="table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-        <thead>
-          <tr>
-            <th>Judul</th>
-            <th style="text-align:center;">Ketua</th>
-            <th style="text-align:center;">Status</th>
-            <th style="text-align:center;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% pendingInvites.forEach((p) => { %>
-            <tr>
-              <td>
-                <a href="/penelitian/<%= p.id %>" style="color:var(--primary); text-decoration:none; font-weight:600;">
-                  <%= p.judul %>
-                </a>
-              </td>
-              <td style="text-align:center;"><%= p.ketua_name || '-' %></td>
-              <td style="text-align:center;"><span class="badge badge-yellow">Menunggu</span></td>
-              <td style="text-align:center;">
-                <a href="/penelitian/<%= p.id %>" class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
-                  Lihat & Proses
-                </a>
-              </td>
-            </tr>
-          <% }); %>
-        </tbody>
-      </table>
+  <div class="card-premium p-6 mb-6 border-amber-200 bg-amber-50/50">
+    <div class="flex items-start gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-lg font-bold text-slate-900 m-0">Undangan Penelitian</h2>
+        <p class="text-sm text-slate-600 mt-1 mb-4">Penelitian yang menunggu konfirmasi Anda.</p>
+        <div class="card-premium overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Judul</th>
+                  <th class="text-center">Ketua</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center w-32">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pendingInvites.forEach((p) => { %>
+                  <tr>
+                    <td class="font-semibold">
+                      <a href="/penelitian/<%= p.id %>" class="text-blue-600 hover:text-blue-800"><%= p.judul %></a>
+                    </td>
+                    <td class="text-center text-slate-700"><%= p.ketua_name || '-' %></td>
+                    <td class="text-center"><span class="badge-pending">Menunggu</span></td>
+                    <td class="text-center">
+                      <a href="/penelitian/<%= p.id %>" class="btn-detail">Lihat & Proses</a>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 <% } %>
 
-<!-- Table -->
-<div class="card">
-  <div style="overflow-x:auto;">
-    <table class="table" style="width:100%; border-collapse:collapse;">
+<div class="card-premium overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="data-table">
       <thead>
         <tr>
-          <th style="width:3rem; text-align:center;">No</th>
+          <th class="text-center w-12">No</th>
           <th>Judul Penelitian</th>
-          <th style="text-align:center;">Tahun</th>
-          <th style="text-align:center;">Peran Saya</th>
-          <th style="text-align:center;">Status</th>
-          <th style="text-align:center; width:13rem;">Aksi</th>
+          <th class="text-center">Tahun</th>
+          <th class="text-center">Peran Saya</th>
+          <th class="text-center">Status</th>
+          <th class="text-center w-48">Aksi</th>
         </tr>
       </thead>
       <tbody>
         <% if (penelitianList.length === 0) { %>
-          <tr>
-            <td colspan="6" style="text-align:center; padding:2rem; color:var(--color-muted-foreground);">
-              Anda belum memiliki data penelitian.
-              <a href="/penelitian/create" style="color:var(--primary);">Tambah sekarang →</a>
-            </td>
-          </tr>
+          <%- include('../partials/_empty-state', {
+            colspan: 6,
+            title: 'Belum ada data penelitian',
+            message: 'Anda belum memiliki penelitian. <a href="/penelitian/create" class="text-blue-600 font-semibold">Tambah sekarang &rarr;</a>',
+            ctaHref: '/penelitian/create',
+            ctaLabel: 'Tambah Penelitian'
+          }) %>
         <% } else { %>
           <% penelitianList.forEach((p, i) => {
                const isKetua = Number(p.ketua_id) === Number(user.id);
           %>
-            <tr>
-              <td style="text-align:center;"><%= i + 1 %></td>
+            <tr class="group">
+              <td class="text-center text-slate-500"><%= i + 1 %></td>
               <td>
-                <a href="/penelitian/<%= p.id %>"
-                   style="font-weight:600; color:var(--primary); text-decoration:none;">
-                  <%= p.judul %>
-                </a>
-                <div style="font-size:0.78rem; color:var(--color-muted-foreground); margin-top:2px;">
-                  Ketua: <%= p.ketua_name || '-' %>
-                </div>
+                <a href="/penelitian/<%= p.id %>" class="font-semibold text-blue-600 hover:text-blue-800 block mb-1"><%= p.judul %></a>
+                <div class="text-xs text-slate-500">Ketua: <span class="font-medium text-slate-700"><%= p.ketua_name || '-' %></span></div>
               </td>
-              <td style="text-align:center;">
-                <%= p.tahun_mulai %>
-                <% if (p.tahun_selesai) { %>– <%= p.tahun_selesai %><% } %>
+              <td class="text-center text-slate-700">
+                <%= p.tahun_mulai %><% if (p.tahun_selesai) { %>–<%= p.tahun_selesai %><% } %>
               </td>
-              <td style="text-align:center;">
-                <span class="badge <%= isKetua ? 'badge-blue' : 'badge-gray' %>">
+              <td class="text-center">
+                <span class="<%= isKetua ? 'badge-role-ketua' : 'badge-role-anggota' %>">
                   <%= isKetua ? 'Ketua' : (p.my_role || 'Anggota') %>
                 </span>
               </td>
-              <td style="text-align:center;">
+              <td class="text-center">
                 <%- include('../partials/_badge-status', { status: p.status }) %>
               </td>
-              <td style="text-align:center;">
-                <div style="display:flex; gap:0.3rem; justify-content:center; flex-wrap:wrap;">
-                  <a href="/penelitian/<%= p.id %>"
-                     class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
-                    Detail
+              <td class="text-center">
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                  <a href="/penelitian/<%= p.id %>" class="btn-icon" title="Detail">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   </a>
                   <% if (isKetua) { %>
-                    <a href="/penelitian/<%= p.id %>/anggota"
-                       class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
-                      Kelola Anggota
+                    <a href="/penelitian/<%= p.id %>/anggota" class="btn-icon" title="Kelola Anggota">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                     </a>
-                    <a href="/penelitian/<%= p.id %>/edit"
-                       class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">
-                      Edit
+                    <a href="/penelitian/<%= p.id %>/edit" class="btn-icon" title="Ubah">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </a>
-                    <button
-                      type="button"
-                      class="btn btn-destructive"
-                      style="padding:0.25rem 0.6rem; font-size:0.8rem;"
-                      data-id="<%= p.id %>"
-                      data-judul="<%= p.judul %>"
-                      onclick="confirmDelete(this.dataset.id, this.dataset.judul)">
-                      Hapus
+                    <button type="button" class="btn-icon text-red-600 border-red-200 hover:bg-red-50" title="Hapus" onclick="confirmDelete('<%= p.id %>', '<%= p.judul.replace(/'/g, "\\'") %>')">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                     </button>
                   <% } %>
                 </div>
@@ -207,41 +123,5 @@
   </div>
 </div>
 
-<!-- Modal Konfirmasi Hapus -->
-<div id="modal-delete" style="
-  display:none; position:fixed; inset:0; z-index:9999;
-  background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-  <div class="card" style="max-width:440px; width:90%; padding:1.5rem;">
-    <h3 style="margin:0 0 0.75rem;">Konfirmasi Hapus</h3>
-    <p id="modal-delete-msg" style="margin:0 0 1.25rem; color:var(--color-muted-foreground);">
-      Apakah Anda yakin ingin menghapus penelitian ini?
-    </p>
-    <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-      <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
-      <form id="form-delete" method="POST" action="" style="display:inline;">
-        <button type="submit" class="btn btn-destructive">Ya, Hapus</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<script>
-function confirmDelete(id, judul) {
-  document.getElementById('modal-delete-msg').textContent =
-    'Apakah Anda yakin ingin menghapus penelitian "' + judul + '"? Tindakan ini tidak dapat dibatalkan.';
-  document.getElementById('form-delete').action = '/penelitian/' + id + '/delete';
-  const modal = document.getElementById('modal-delete');
-  modal.style.display = 'flex';
-}
-
-function closeDeleteModal() {
-  document.getElementById('modal-delete').style.display = 'none';
-}
-
-// Tutup modal saat klik backdrop
-document.getElementById('modal-delete').addEventListener('click', function(e) {
-  if (e.target === this) closeDeleteModal();
-});
-</script>
-
+<%- include('../partials/_modal-delete') %>
 <%- include('../partials/footer') %>

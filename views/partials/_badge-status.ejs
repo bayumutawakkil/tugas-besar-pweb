@@ -4,11 +4,11 @@
  * @param {string} status - 'draft' | 'aktif' | 'selesai' | 'ditolak'
  */
 const badgeMap = {
-  draft:   { cls: 'badge-gray',   label: 'Draft'   },
-  aktif:   { cls: 'badge-green',  label: 'Aktif'   },
-  selesai: { cls: 'badge-blue',   label: 'Selesai' },
-  ditolak: { cls: 'badge-red',    label: 'Ditolak' },
+  draft:   { cls: 'badge-status-draft',   label: 'Draft'   },
+  aktif:   { cls: 'badge-status-aktif',   label: 'Aktif'   },
+  selesai: { cls: 'badge-status-selesai', label: 'Selesai' },
+  ditolak: { cls: 'badge-status-ditolak', label: 'Ditolak' },
 };
-const badge = badgeMap[status] || { cls: 'badge-gray', label: status || '-' };
+const badge = badgeMap[status] || { cls: 'badge-status-draft', label: status || '-' };
 %>
-<span class="badge <%= badge.cls %>"><%= badge.label %></span>
+<span class="<%= badge.cls %>"><%= badge.label %></span>
