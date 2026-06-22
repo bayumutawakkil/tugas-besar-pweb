@@ -1,0 +1,215 @@
+<%- include('../partials/header') %>
+
+<div style="max-width:720px; margin:0 auto;">
+
+  <!-- Breadcrumb -->
+  <nav style="font-size:0.85rem; color:var(--color-muted-foreground); margin-bottom:1rem;">
+    <a href="/penelitian/my-penelitian" style="color:var(--primary); text-decoration:none;">Data Penelitian</a>
+    &rsaquo; Import dari Excel
+  </nav>
+
+  <div class="card" style="padding:2rem; margin-bottom:1.25rem;">
+    <h2 style="margin:0 0 0.4rem;">Import Data Penelitian dari Excel</h2>
+    <p style="margin:0 0 1.5rem; color:var(--color-muted-foreground);">
+      Unggah file Excel (.xlsx / .xls) dengan format kolom yang sesuai.
+      Maksimal ukuran file: <strong>5 MB</strong>.
+    </p>
+
+    <!-- Error -->
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-destructive" style="margin-bottom:1.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+          <% errors.forEach(e => { %><p style="margin:0;"><%= e %></p><% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Hasil Import -->
+    <% if (result) { %>
+      <div class="alert <%= result.skipped > 0 ? 'alert-warning' : 'alert-success' %>" style="margin-bottom:1.5rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <% if (result.skipped > 0) { %>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          <% } else { %>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          <% } %>
+        </svg>
+        <div>
+          <strong>Proses import selesai</strong>
+          <ul style="margin:0.4rem 0 0; padding-left:1.2rem;">
+            <li>Total baris dibaca: <strong><%= result.total %></strong></li>
+            <li>Berhasil diimpor: <strong><%= result.inserted %></strong></li>
+            <li>Dilewati (error): <strong><%= result.skipped %></strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Detail baris error -->
+      <% if (result.errorRows && result.errorRows.length > 0) { %>
+        <div class="card" style="padding:1rem; margin-bottom:1.5rem; border:1px solid var(--color-border);">
+          <h4 style="margin:0 0 0.75rem; font-size:0.9rem;">Detail Baris yang Dilewati</h4>
+          <table class="table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+              <tr>
+                <th style="width:5rem; text-align:center;">Baris Excel</th>
+                <th>Alasan Error</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% result.errorRows.forEach(r => { %>
+                <tr>
+                  <td style="text-align:center;"><%= r.rowNumber %></td>
+                  <td><%= r.errors.join('; ') %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+
+      <a href="/penelitian/my-penelitian" class="btn btn-primary">
+        Lihat Data Penelitian Saya
+      </a>
+    <% } %>
+
+    <!-- Form Upload -->
+    <form
+      method="POST"
+      action="/penelitian/import"
+      enctype="multipart/form-data"
+      id="importForm"
+    >
+      <div class="field" style="margin-bottom:1.25rem;">
+        <label for="file_excel" style="display:block; margin-bottom:0.5rem;">
+          Pilih File Excel <span style="color:var(--destructive);">*</span>
+        </label>
+
+        <!-- Drop Zone -->
+        <div id="dropZone" style="
+          border: 2px dashed var(--color-border);
+          border-radius: var(--radius);
+          padding: 2rem;
+          text-align: center;
+          cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;"
+          onclick="document.getElementById('file_excel').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+               style="margin:0 auto 0.75rem; color:var(--color-muted-foreground);">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p id="dropText" style="margin:0; color:var(--color-muted-foreground);">
+            Drag &amp; drop file di sini, atau <span style="color:var(--primary); font-weight:600;">klik untuk memilih</span>
+          </p>
+          <p style="margin:0.25rem 0 0; font-size:0.8rem; color:var(--color-muted-foreground);">
+            Hanya .xlsx / .xls — Maks. 5 MB
+          </p>
+        </div>
+
+        <input
+          type="file"
+          id="file_excel"
+          name="file_excel"
+          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          style="display:none;"
+          required
+          onchange="handleFileChange(this)"
+        >
+      </div>
+
+      <div style="display:flex; gap:0.75rem;">
+        <button type="submit" class="btn btn-primary" id="btnImport">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Proses Import
+        </button>
+        <a href="/penelitian/my-penelitian" class="btn btn-secondary">Batal</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Panduan Format -->
+  <div class="card" style="padding:1.5rem;">
+    <h3 style="margin:0 0 0.75rem;">Format File Excel</h3>
+    <p style="margin:0 0 0.75rem; color:var(--color-muted-foreground); font-size:0.9rem;">
+      Baris pertama adalah <strong>header</strong> (akan dilewati). Data dimulai dari baris ke-2.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+        <thead>
+          <tr>
+            <th style="text-align:center;">Kolom</th>
+            <th>Nama Kolom</th>
+            <th>Keterangan</th>
+            <th style="text-align:center;">Wajib?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="text-align:center;">A</td><td>Judul</td><td>Judul penelitian (maks. 500 karakter)</td><td style="text-align:center;">✓</td></tr>
+          <tr><td style="text-align:center;">B</td><td>Deskripsi</td><td>Abstrak / deskripsi singkat</td><td style="text-align:center;">–</td></tr>
+          <tr><td style="text-align:center;">C</td><td>Tahun Mulai</td><td>Angka tahun, mis: 2024</td><td style="text-align:center;">✓</td></tr>
+          <tr><td style="text-align:center;">D</td><td>Tahun Selesai</td><td>Angka tahun (boleh kosong)</td><td style="text-align:center;">–</td></tr>
+          <tr><td style="text-align:center;">E</td><td>Status</td><td><code>draft</code> / <code>aktif</code> / <code>selesai</code> / <code>ditolak</code></td><td style="text-align:center;">–</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleFileChange(input) {
+  const dropText = document.getElementById('dropText');
+  if (input.files && input.files[0]) {
+    dropText.innerHTML = '📄 <strong>' + input.files[0].name + '</strong> dipilih';
+    document.getElementById('dropZone').style.borderColor = 'var(--primary)';
+    document.getElementById('dropZone').style.background  = 'rgba(37,99,235,0.05)';
+  }
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = 'var(--primary)';
+  document.getElementById('dropZone').style.background  = 'rgba(37,99,235,0.05)';
+}
+
+function handleDragLeave(e) {
+  document.getElementById('dropZone').style.borderColor = 'var(--color-border)';
+  document.getElementById('dropZone').style.background  = '';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const fileInput = document.getElementById('file_excel');
+  if (e.dataTransfer.files.length) {
+    fileInput.files = e.dataTransfer.files;
+    handleFileChange(fileInput);
+  }
+}
+
+document.getElementById('importForm').addEventListener('submit', function() {
+  const btn = document.getElementById('btnImport');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Memproses...';
+});
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,132 @@
+<%- include('../partials/header') %>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toast-container">
+  <% if (typeof flashType !== 'undefined' && flashType && flashMsg) { %>
+    <%- include('../partials/_alert', {
+      type:    flashType === 'success' ? 'success' : 'destructive',
+      title:   flashType === 'success' ? 'Berhasil' : 'Terjadi Kesalahan',
+      message: flashMsg
+    }) %>
+  <% } %>
+</div>
+
+<!-- Page Header -->
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+  <div>
+    <h1 class="page-title" style="margin:0;">Semua Data Penelitian</h1>
+    <p style="margin:0.25rem 0 0; color:var(--color-muted-foreground);">
+      Daftar seluruh penelitian yang terdaftar di FTI
+    </p>
+  </div>
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <a href="/penelitian/export/excel" class="btn btn-secondary" title="Ekspor ke Excel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Excel
+    </a>
+    <a href="/penelitian/export/pdf" class="btn btn-secondary" title="Ekspor ke PDF">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      PDF
+    </a>
+    <a href="/penelitian/import" class="btn btn-secondary" title="Impor dari Excel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Import
+    </a>
+    <a href="/penelitian/create" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Tambah Penelitian
+    </a>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="padding:1rem; margin-bottom:1.25rem;">
+  <form action="/penelitian/search" method="GET" style="display:flex; gap:0.5rem;">
+    <input
+      type="text"
+      name="q"
+      class="input"
+      placeholder="Cari judul, deskripsi, atau nama ketua..."
+      style="flex:1;"
+    >
+    <input type="hidden" name="scope" value="all">
+    <button type="submit" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      Cari
+    </button>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div style="overflow-x:auto;">
+    <table class="table" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="width:3rem; text-align:center;">No</th>
+          <th>Judul Penelitian</th>
+          <th>Ketua</th>
+          <th style="text-align:center;">Tahun</th>
+          <th style="text-align:center;">Anggota</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center; width:9rem;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (penelitianList.length === 0) { %>
+          <tr>
+            <td colspan="7" style="text-align:center; padding:2rem; color:var(--color-muted-foreground);">
+              Belum ada data penelitian.
+            </td>
+          </tr>
+        <% } else { %>
+          <% penelitianList.forEach((p, i) => { %>
+            <tr>
+              <td style="text-align:center;"><%= i + 1 %></td>
+              <td>
+                <a href="/penelitian/<%= p.id %>"
+                   style="font-weight:600; color:var(--primary); text-decoration:none;">
+                  <%= p.judul %>
+                </a>
+              </td>
+              <td><%= p.ketua_name || '-' %></td>
+              <td style="text-align:center;">
+                <%= p.tahun_mulai %>
+                <% if (p.tahun_selesai) { %>– <%= p.tahun_selesai %><% } %>
+              </td>
+              <td style="text-align:center;"><%= p.total_anggota || 0 %></td>
+              <td style="text-align:center;">
+                <%- include('../partials/_badge-status', { status: p.status }) %>
+              </td>
+              <td style="text-align:center;">
+                <a href="/penelitian/<%= p.id %>" class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.8rem;">Detail</a>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

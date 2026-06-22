@@ -15,7 +15,7 @@ async function getAllPenelitian() {
       COUNT(DISTINCT CASE WHEN ap.status = 'approved' THEN ap.id END) as anggota_approved
     FROM penelitian p
     LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN anggota_penelitian ap ON p.id = ap.penelitian_id
+    LEFT JOIN penelitian_anggota ap ON p.id = ap.penelitian_id
     GROUP BY p.id
     ORDER BY p.created_at DESC
   `);
@@ -37,8 +37,8 @@ async function getPenelitianByDosenId(dosenId) {
       COUNT(DISTINCT CASE WHEN ap2.status = 'approved' THEN ap2.id END) as anggota_approved
     FROM penelitian p
     LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN anggota_penelitian ap ON p.id = ap.penelitian_id AND ap.dosen_id = ?
-    LEFT JOIN anggota_penelitian ap2 ON p.id = ap2.penelitian_id
+    LEFT JOIN penelitian_anggota ap ON p.id = ap.penelitian_id AND ap.dosen_id = ?
+    LEFT JOIN penelitian_anggota ap2 ON p.id = ap2.penelitian_id
     WHERE p.ketua_id = ? OR ap.dosen_id = ?
     GROUP BY p.id
     ORDER BY p.created_at DESC
@@ -71,7 +71,7 @@ async function getAnggotaPenelitian(penelitianId) {
       ap.*,
       u.name as dosen_name,
       u.email as dosen_email
-    FROM anggota_penelitian ap
+    FROM penelitian_anggota ap
     LEFT JOIN users u ON ap.dosen_id = u.id
     WHERE ap.penelitian_id = ?
     ORDER BY ap.role DESC, ap.status, ap.created_at
@@ -94,7 +94,7 @@ async function isKetuaPenelitian(penelitianId, userId) {
  */
 async function isAnggotaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(`
-    SELECT id FROM anggota_penelitian 
+    SELECT id FROM penelitian_anggota 
     WHERE penelitian_id = ? AND dosen_id = ?
   `, [penelitianId, userId]);
   return rows.length > 0;
@@ -105,7 +105,7 @@ async function isAnggotaPenelitian(penelitianId, userId) {
  */
 async function getUserRoleInPenelitian(penelitianId, userId) {
   const [rows] = await db.query(`
-    SELECT role, status FROM anggota_penelitian 
+    SELECT role, status FROM penelitian_anggota 
     WHERE penelitian_id = ? AND dosen_id = ?
   `, [penelitianId, userId]);
   return rows[0];
@@ -131,7 +131,7 @@ async function createPenelitian(data) {
     
     // Auto-add ketua as anggota with approved status
     await connection.query(`
-      INSERT INTO anggota_penelitian (penelitian_id, dosen_id, role, status)
+      INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
       VALUES (?, ?, 'Ketua', 'approved')
     `, [penelitianId, ketua_id]);
     
@@ -177,7 +177,7 @@ async function deletePenelitian(penelitianId) {
 async function addAnggotaPenelitian(penelitianId, dosenId) {
   try {
     const [result] = await db.query(`
-      INSERT INTO anggota_penelitian (penelitian_id, dosen_id, role, status)
+      INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
       VALUES (?, ?, 'Anggota', 'pending')
     `, [penelitianId, dosenId]);
     
@@ -195,7 +195,7 @@ async function addAnggotaPenelitian(penelitianId, dosenId) {
  */
 async function updateStatusAnggota(penelitianId, dosenId, status) {
   const [result] = await db.query(`
-    UPDATE anggota_penelitian 
+    UPDATE penelitian_anggota 
     SET status = ?
     WHERE penelitian_id = ? AND dosen_id = ?
   `, [status, penelitianId, dosenId]);
@@ -208,7 +208,7 @@ async function updateStatusAnggota(penelitianId, dosenId, status) {
  */
 async function removeAnggotaPenelitian(penelitianId, dosenId) {
   const [result] = await db.query(`
-    DELETE FROM anggota_penelitian 
+    DELETE FROM penelitian_anggota 
     WHERE penelitian_id = ? AND dosen_id = ? AND role = 'Anggota'
   `, [penelitianId, dosenId]);
   
@@ -228,7 +228,7 @@ async function searchPenelitian(keyword, dosenId = null) {
       COUNT(DISTINCT CASE WHEN ap.status = 'approved' THEN ap.id END) as anggota_approved
     FROM penelitian p
     LEFT JOIN users u ON p.ketua_id = u.id
-    LEFT JOIN anggota_penelitian ap ON p.id = ap.penelitian_id
+    LEFT JOIN penelitian_anggota ap ON p.id = ap.penelitian_id
     WHERE (p.judul LIKE ? OR p.deskripsi LIKE ? OR u.name LIKE ?)
   `;
   
@@ -263,7 +263,7 @@ async function getAvailableDosen(penelitianId) {
     SELECT u.id, u.name, u.email 
     FROM users u
     WHERE u.id NOT IN (
-      SELECT dosen_id FROM anggota_penelitian WHERE penelitian_id = ?
+      SELECT dosen_id FROM penelitian_anggota WHERE penelitian_id = ?
     )
     ORDER BY u.name
   `, [penelitianId]);

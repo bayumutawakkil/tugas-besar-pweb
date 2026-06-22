@@ -1,17 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const { checkAuth } = require('../config');
-const {
-  preventIdManipulation,
-  validatePenelitianData,
-} = require('../middleware/penelitianAuth');
-const {
-  ROLES,
-  checkRole,
-  checkOwnership,
-  checkAnggotaSelf,
-  checkCanView,
-} = require('../middleware/accessControlList');
+/**
+ * Router: Pengelolaan Data Penelitian
+ * NIM  : 2411522023
+ * Nama : Bayu Mutawakkil
+ *
+ * Semua rute di sini dilindungi oleh:
+ *  1. checkAuth   – memastikan user sudah login (JWT valid)
+ *  2. checkRole   – memastikan role user adalah dosen / admin
+ *  3. checkOwnership – pada operasi write, memastikan user adalah ketua penelitian
+ *
+ * Import Excel menggunakan multer (memori, tanpa disk).
+ */
+
+'use strict';
 
 const {
   getAllPenelitian,
@@ -45,39 +45,55 @@ router.get('/my-penelitian', checkAuth, async (req, res) => {
   } catch (err) {
     res.status(500).render('error', { message: 'Gagal memuat data penelitian Anda' });
   }
+const express = require('express');
+const multer  = require('multer');
+const router  = express.Router();
+
+const { checkAuth }    = require('../config');
+const { ROLES, checkRole, checkOwnership, checkCanView } =
+  require('../middleware/accessControlList');
+const { preventIdManipulation } =
+  require('../middleware/penelitianAuth');
+
+const ctrl = require('../controllers/penelitianController');
+
+// ── Multer: simpan file di memori (tidak ke disk) ──────────────────────────
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 5 * 1024 * 1024 }, // maks 5 MB
+  fileFilter(_req, file, cb) {
+    const allowed = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+    ];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Hanya file Excel (.xlsx/.xls) yang diizinkan.'));
+    }
+  },
 });
 
+// ── Guard role: hanya dosen & admin ────────────────────────────────────────
+const requireDosen = [checkAuth, checkRole(ROLES.DOSEN, ROLES.ADMIN)];
 
-router.get('/search', checkAuth, async (req, res) => {
-  try {
-    const keyword = req.query.q || '';
-    const scope = req.query.scope || 'all';
+// ══════════════════════════════════════════════════════════════════════════
+//  URUTAN ROUTE PENTING:
+//  Rute statis (/dashboard, /my-penelitian, /search, dst.) HARUS dideklarasi
+//  SEBELUM rute dinamis (/:id) agar Express tidak salah mencocokkan.
+// ══════════════════════════════════════════════════════════════════════════
 
-    if (!keyword.trim()) return res.redirect('/penelitian/dashboard');
+// ── 1. Dashboard – daftar semua penelitian ──────────────────────────────
+router.get('/dashboard', ...requireDosen, ctrl.showDashboard);
 
-    const dosenId = scope === 'mine' ? req.user.id : null;
-    const penelitianList = await searchPenelitian(keyword, dosenId);
+// ── 2. Data Penelitian Saya ─────────────────────────────────────────────
+router.get('/my-penelitian', ...requireDosen, ctrl.showMyPenelitian);
 
-    res.render('penelitian/search-results', {
-      user: req.user,
-      penelitianList,
-      keyword,
-      scope,
-    });
-  } catch (err) {
-    console.error('Error searching penelitian:', err);
-    res.status(500).render('error', { message: 'Gagal melakukan pencarian' });
-  }
-});
+// ── 3. Cari penelitian ──────────────────────────────────────────────────
+router.get('/search', ...requireDosen, ctrl.handleSearch);
 
-router.get(
-  '/create',
-  checkAuth,
-  checkRole(ROLES.DOSEN, ROLES.ADMIN),
-  (req, res) => {
-    res.render('penelitian/create', { user: req.user, error: null });
-  }
-);
+// ── 4. Impor dari Excel ─────────────────────────────────────────────────
+router.get('/import', ...requireDosen, ctrl.showImportForm);
 
 router.post(
   '/create',
@@ -105,57 +121,39 @@ router.post(
       });
     }
   }
+  '/import',
+  ...requireDosen,
+  upload.single('file_excel'),
+  ctrl.handleImport
 );
 
-router.get('/:id', checkAuth, async (req, res) => {
-  try {
-    const penelitianId = req.params.id;
-    const penelitian = await getPenelitianById(penelitianId);
+// ── 5. Ekspor Excel ─────────────────────────────────────────────────────
+router.get('/export/excel', ...requireDosen, ctrl.exportExcel);
 
-    if (!penelitian) {
-      return res.status(404).render('error', { message: 'Penelitian tidak ditemukan' });
-    }
+// ── 6. Ekspor PDF ───────────────────────────────────────────────────────
+router.get('/export/pdf', ...requireDosen, ctrl.exportPdf);
 
-    const anggotaList = await getAnggotaPenelitian(penelitianId);
-    const isKetua = Number(penelitian.ketua_id) === Number(req.user.id);
-    const role = req.user.role || ROLES.ANGGOTA;
+// ── 7. Form tambah penelitian ───────────────────────────────────────────
+router.get('/create', ...requireDosen, ctrl.showCreateForm);
 
-    res.render('penelitian/detail', {
-      user: req.user,
-      penelitian,
-      anggotaList,
-      isKetua,
-      isAdmin: role === ROLES.ADMIN,
-    });
-  } catch (err) {
-    console.error('Error loading penelitian detail:', err);
-    res.status(500).render('error', { message: 'Gagal memuat detail penelitian' });
-  }
-});
+router.post('/create', ...requireDosen, ctrl.handleCreate);
 
+// ── 8. Detail penelitian ────────────────────────────────────────────────
+//    checkCanView membolehkan ketua, anggota, dan admin melihat detail.
+router.get('/:id', checkAuth, checkCanView, ctrl.showDetail);
+
+// ── 9. Form edit penelitian ─────────────────────────────────────────────
 router.get(
   '/:id/edit',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
-  async (req, res) => {
-    try {
-      const penelitian = req.penelitian || await getPenelitianById(req.params.id);
-
-      if (!penelitian) {
-        return res.status(404).render('error', { message: 'Penelitian tidak ditemukan' });
-      }
-
-      res.render('penelitian/edit', { user: req.user, penelitian, error: null });
-    } catch (err) {
-      console.error('Error loading edit form:', err);
-      res.status(500).render('error', { message: 'Gagal memuat form edit' });
-    }
-  }
+  ctrl.showEditForm
 );
 
+// ── 10. Proses update ───────────────────────────────────────────────────
 router.post(
   '/:id/update',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
   preventIdManipulation,
   validatePenelitianData,
@@ -184,81 +182,70 @@ router.post(
       });
     }
   }
+  ctrl.handleUpdate
 );
 
+// ── 11. Hapus penelitian ────────────────────────────────────────────────
 router.post(
   '/:id/delete',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
   preventIdManipulation,
-  async (req, res) => {
-    try {
-      const penelitianId = req.params.id;
-      const success = await deletePenelitian(penelitianId);
-
-      if (!success) throw new Error('Gagal menghapus penelitian');
-
-      res.redirect('/penelitian/my-penelitian');
-    } catch (err) {
-      console.error('Error deleting penelitian:', err);
-      res.status(500).json({ error: 'Gagal menghapus penelitian. ' + err.message });
-    }
-  }
+  ctrl.handleDelete
 );
+
+// ── 12. Kelola anggota ──────────────────────────────────────────────────
+const {
+  getAnggotaPenelitian,
+  getPenelitianById,
+  addAnggotaPenelitian,
+  removeAnggotaPenelitian,
+  updateStatusAnggota,
+  getAvailableDosen,
+} = require('../config/penelitian');
+const { checkAnggotaSelf } = require('../middleware/accessControlList');
 
 router.get(
   '/:id/anggota',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
   async (req, res) => {
     try {
-      const penelitianId = req.params.id;
-      const penelitian = req.penelitian || await getPenelitianById(penelitianId);
-      const anggotaList = await getAnggotaPenelitian(penelitianId);
+      const penelitianId   = req.params.id;
+      const penelitian     = req.penelitian || await getPenelitianById(penelitianId);
+      const anggotaList    = await getAnggotaPenelitian(penelitianId);
       const availableDosen = await getAvailableDosen(penelitianId);
 
-      res.render('penelitian/manage-anggota', {
-        user: req.user,
-        penelitian,
-        anggotaList,
-        availableDosen,
-        error: null,
-        success: null,
+      return res.render('penelitian/manage-anggota', {
+        user: req.user, penelitian, anggotaList, availableDosen,
+        errors: [], flashType: null, flashMsg: null,
       });
     } catch (err) {
-      console.error('Error loading manage anggota:', err);
-      res.status(500).render('error', { message: 'Gagal memuat halaman kelola anggota' });
+      console.error('Error load manage-anggota:', err);
+      return res.status(500).render('error', { message: 'Gagal memuat halaman kelola anggota.' });
     }
   }
 );
 
 router.post(
   '/:id/anggota/add',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
   preventIdManipulation,
   async (req, res) => {
+    const penelitianId = req.params.id;
     try {
-      const penelitianId = req.params.id;
       const dosenId = req.body.dosen_id;
-
-      if (!dosenId) throw new Error('Dosen harus dipilih');
-
+      if (!dosenId) throw new Error('Dosen harus dipilih.');
       await addAnggotaPenelitian(penelitianId, dosenId);
-      res.redirect(`/penelitian/${penelitianId}/anggota`);
+      return res.redirect(`/penelitian/${penelitianId}/anggota`);
     } catch (err) {
-      console.error('Error adding anggota:', err);
-      const penelitian = await getPenelitianById(req.params.id);
-      const anggotaList = await getAnggotaPenelitian(req.params.id);
-      const availableDosen = await getAvailableDosen(req.params.id);
-
-      res.render('penelitian/manage-anggota', {
-        user: req.user,
-        penelitian,
-        anggotaList,
-        availableDosen,
-        error: err.message,
-        success: null,
+      const penelitian     = await getPenelitianById(penelitianId);
+      const anggotaList    = await getAnggotaPenelitian(penelitianId);
+      const availableDosen = await getAvailableDosen(penelitianId);
+      return res.render('penelitian/manage-anggota', {
+        user: req.user, penelitian, anggotaList, availableDosen,
+        errors: [err.message], flashType: null, flashMsg: null,
       });
     }
   }
@@ -266,27 +253,23 @@ router.post(
 
 router.post(
   '/:id/anggota/remove',
-  checkAuth,
+  ...requireDosen,
   checkOwnership,
   preventIdManipulation,
   async (req, res) => {
     try {
-      const penelitianId = req.params.id;
       const dosenId = req.body.dosen_id;
-
-      if (!dosenId) throw new Error('Dosen ID tidak valid');
-
-      const success = await removeAnggotaPenelitian(penelitianId, dosenId);
-      if (!success) throw new Error('Gagal menghapus anggota');
-
-      res.redirect(`/penelitian/${penelitianId}/anggota`);
+      if (!dosenId) throw new Error('Dosen ID tidak valid.');
+      await removeAnggotaPenelitian(req.params.id, dosenId);
+      return res.redirect(`/penelitian/${req.params.id}/anggota`);
     } catch (err) {
-      console.error('Error removing anggota:', err);
-      res.status(500).json({ error: 'Gagal menghapus anggota. ' + err.message });
+      console.error('Error remove anggota:', err);
+      return res.status(500).json({ error: err.message });
     }
   }
 );
 
+// ── 13. Update status keanggotaan (oleh anggota sendiri) ────────────────
 router.post(
   '/:id/membership/update',
   checkAuth,
@@ -294,7 +277,6 @@ router.post(
   preventIdManipulation,
   async (req, res) => {
     try {
-      const penelitianId = req.params.id;
       const status = req.body.status;
 
       if (!['approved', 'rejected'].includes(status)) {
@@ -332,9 +314,12 @@ router.get(
         `attachment; filename="penelitian_${penelitianId}_anggota.csv"`
       );
       res.send(csv);
+      if (!['approved', 'rejected'].includes(status)) throw new Error('Status tidak valid.');
+      await updateStatusAnggota(req.params.id, req.user.id, status);
+      return res.redirect(`/penelitian/${req.params.id}`);
     } catch (err) {
-      console.error('Error exporting penelitian:', err);
-      res.status(500).json({ error: 'Gagal export data penelitian' });
+      console.error('Error update membership:', err);
+      return res.status(500).json({ error: err.message });
     }
   }
 );
