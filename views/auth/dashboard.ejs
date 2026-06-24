@@ -22,7 +22,9 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     </div>
     <h3 class="text-4xl font-black text-slate-900 m-0 tracking-tight"><%= stats.totalPenelitian %></h3>
-    <p class="text-sm font-semibold text-slate-500 mt-2 uppercase tracking-wide">Penelitian Saya</p>
+    <p class="text-sm font-semibold text-slate-500 mt-2 uppercase tracking-wide">
+      <%= (typeof user !== 'undefined' && user.role === 'admin') ? 'Total Penelitian' : 'Penelitian Saya' %>
+    </p>
   </div>
 
   <div class="card-premium p-6 text-center group cursor-default">
@@ -82,9 +84,14 @@
   </div>
   <div class="p-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-      <a href="/penelitian/my-penelitian" class="btn btn-outline btn-outline-blue w-full">Data Penelitian</a>
-      <a href="/penelitian/create" class="btn btn-gradient w-full">Tambah Penelitian</a>
-      <a href="/penelitian/undangan" class="btn btn-outline btn-outline-indigo w-full">Undangan</a>
+      <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+        <a href="/penelitian/dashboard" class="btn btn-outline btn-outline-blue w-full">Overview Penelitian</a>
+        <a href="/auth/users" class="btn btn-gradient w-full">Kelola Pengguna</a>
+      <% } else { %>
+        <a href="/penelitian/my-penelitian" class="btn btn-outline btn-outline-blue w-full">Data Penelitian</a>
+        <a href="/penelitian/create" class="btn btn-gradient w-full">Tambah Penelitian</a>
+        <a href="/penelitian/undangan" class="btn btn-outline btn-outline-indigo w-full">Undangan</a>
+      <% } %>
       <a href="/auth/profile" class="btn btn-secondary w-full">Edit Profil</a>
     </div>
   </div>

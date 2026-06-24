@@ -693,7 +693,7 @@
     border-bottom: 1px solid #e2e8f0;
   }
   .table-card tbody tr:hover { background: rgba(248, 250, 252, 0.8); }
-  .data-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 0.875rem; }
+  .data-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 0.875rem; white-space: nowrap; }
   .data-table thead tr {
     background: rgba(248, 250, 252, 0.8);
     border-bottom: 1px solid #e2e8f0;
@@ -703,8 +703,9 @@
     color: #64748b;
     font-weight: 600;
   }
-  .data-table th { padding: 1rem 1.25rem; }
+  .data-table th { padding: 1rem 1.25rem; white-space: nowrap; }
   .data-table td { padding: 1rem 1.25rem; }
+  .data-table td.wrap-text { white-space: normal; min-width: 200px; }
   .data-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
   .data-table tbody tr:hover { background: rgba(248, 250, 252, 0.8); }
   .data-table tbody tr:last-child { border-bottom: none; }

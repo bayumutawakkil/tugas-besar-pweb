@@ -215,11 +215,29 @@ async function updateUserStatus(id, status) {
 async function deleteUser(id) {
   const conn = await db.getConnection();
   try {
+    await conn.beginTransaction();
+
+    // Hapus relasi role (Spatie)
+    await conn.execute('DELETE FROM model_has_roles WHERE model_id = ? AND model_type = ?', [id, MODEL_TYPE]);
+    
+    // Hapus keikutsertaan penelitian jika ada
+    await conn.execute('DELETE FROM research_members WHERE lecturer_id = ?', [id]);
+
+    // Hapus profil spesifik
+    await conn.execute('DELETE FROM lecturers WHERE id = ?', [id]);
+    await conn.execute('DELETE FROM employees WHERE id = ?', [id]);
+
+    // Terakhir, hapus data user
     const [result] = await conn.execute(
       'DELETE FROM users WHERE id = ?',
       [id]
     );
+
+    await conn.commit();
     return result.affectedRows > 0;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
   } finally {
     conn.release();
   }

@@ -55,7 +55,7 @@ async function getAllPenelitian() {
       u.name  AS ketua_name,
       u.email AS ketua_email,
       COUNT(DISTINCT ap.id) AS total_anggota,
-      COUNT(DISTINCT ap.id) AS anggota_approved
+      COUNT(DISTINCT CASE WHEN ap.role != '${ROLE_PENDING}' THEN ap.id END) AS anggota_approved
     FROM research p
     ${KETUA_JOIN}
     LEFT JOIN research_members ap ON p.id = ap.research_id
@@ -79,7 +79,7 @@ async function getPenelitianByDosenId(dosenId) {
       CASE WHEN ap.role = '${ROLE_PENDING}' THEN '${ROLE_ANGGOTA}' ELSE ap.role END AS my_role,
       CASE WHEN ap.role = '${ROLE_PENDING}' THEN 'pending' ELSE 'approved' END AS my_status,
       COUNT(DISTINCT ap2.id) AS total_anggota,
-      COUNT(DISTINCT ap2.id) AS anggota_approved
+      COUNT(DISTINCT CASE WHEN ap2.role != '${ROLE_PENDING}' THEN ap2.id END) AS anggota_approved
     FROM research p
     ${KETUA_JOIN}
     LEFT JOIN research_members ap  ON p.id = ap.research_id  AND ap.lecturer_id  = ?
@@ -350,7 +350,7 @@ async function searchPenelitian(keyword, dosenId = null) {
       u.name  AS ketua_name,
       u.email AS ketua_email,
       COUNT(DISTINCT ap.id) AS total_anggota,
-      COUNT(DISTINCT ap.id) AS anggota_approved
+      COUNT(DISTINCT CASE WHEN ap.role != '${ROLE_PENDING}' THEN ap.id END) AS anggota_approved
     FROM research p
     ${KETUA_JOIN}
     LEFT JOIN research_members ap ON p.id = ap.research_id

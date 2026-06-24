@@ -102,9 +102,10 @@ async function showDashboard(req, res) {
     const flashType = req.query.flash_type || null;
     const flashMsg  = req.query.flash_msg  ? decodeURIComponent(req.query.flash_msg) : null;
 
-    const penelitianList = await penelitianRepo.getPenelitianByDosenId(req.user.id);
-    const pendingInvites = await penelitianRepo.getPendingInvitations(req.user.id);
-    const penelitianStats = await penelitianRepo.getPenelitianStats(req.user.id);
+    const isDosen = user.role !== ROLES.ADMIN;
+    const penelitianList = isDosen ? await penelitianRepo.getPenelitianByDosenId(req.user.id) : [];
+    const pendingInvites = isDosen ? await penelitianRepo.getPendingInvitations(req.user.id) : [];
+    const penelitianStats = await penelitianRepo.getPenelitianStats(isDosen ? req.user.id : null);
 
     let totalUsers = null;
     if (user.role === ROLES.ADMIN) {

@@ -40,7 +40,7 @@
           <% users.forEach((item, i) => { %>
             <tr>
               <td class="text-center text-slate-500"><%= i + 1 %></td>
-              <td class="font-semibold text-slate-900"><%= item.name %></td>
+              <td class="font-semibold text-slate-900 wrap-text"><%= item.name %></td>
               <td class="text-slate-500"><%= item.email %></td>
               <td class="text-center">
                 <span class="<%= item.role === 'admin' ? 'badge-role-ketua' : 'badge-role-anggota' %> capitalize"><%= item.role %></span>
