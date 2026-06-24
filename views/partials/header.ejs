@@ -105,6 +105,7 @@
           <span class="sidebar-link-label">Dashboard</span>
         </a>
 
+        <% if (user.role !== 'admin') { %>
         <a href="/penelitian/dashboard" class="sidebar-link" data-label="Penelitian FTI">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -133,6 +134,7 @@
             <span class="sidebar-badge"><%= pendingInviteCount %></span>
           <% } %>
         </a>
+        <% } %>
 
         <% if (user.role === 'admin') { %>
         <span class="sidebar-section-label mt">Admin</span>
