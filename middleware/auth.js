@@ -5,10 +5,6 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_change_this';
 
-/**
- * Middleware: Pastikan user sudah login (JWT valid).
- * Jika tidak, redirect ke halaman login.
- */
 function checkAuth(req, res, next) {
   const token = req.cookies.token;
 

@@ -13,7 +13,7 @@
 
 <body class="<%= (typeof user !== 'undefined' && user) ? 'has-sidebar' : 'guest-layout' %>">
 
-  <!-- ── TOP NAV ── -->
+  
   <nav class="topnav">
     <% if (typeof user !== 'undefined' && user) { %>
       <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
@@ -39,7 +39,7 @@
 
     <% if (typeof user !== 'undefined' && user) { %>
 
-      <!-- Profile Dropdown -->
+      
       <div class="profile-dropdown" id="profileDropdown">
         <button class="profile-btn" onclick="toggleProfile(event)" aria-label="Menu profil">
           <div class="profile-avatar shadow-sm border border-white/20">
@@ -84,12 +84,12 @@
     <% } %>
   </nav>
 
-  <!-- ── APP BODY ── -->
+  
   <div class="app-body">
 
     <% if (typeof user !== 'undefined' && user) { %>
 
-    <!-- ── SIDEBAR ── -->
+    
     <aside class="sidebar-custom" id="sidebar">
       <nav class="sidebar-nav">
 
@@ -156,7 +156,7 @@
 
     <% } %>
 
-    <!-- ── MAIN CONTENT ── -->
+    
     <main class="main-content" id="mainContent">
 
   <script>

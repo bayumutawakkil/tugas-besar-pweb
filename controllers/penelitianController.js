@@ -1,17 +1,4 @@
-/**
- * Controller: Pengelolaan Data Penelitian
- * NIM  : 2411522023
- * Nama : Bayu Mutawakkil
- *
- * Tanggung jawab:
- *  - CRUD (Tambah, Lihat, Ubah, Hapus)
- *  - Cari (Search)
- *  - Impor dari Excel
- *  - Ekspor ke Excel & PDF
- *
- * Semua query DB menggunakan prepared statements (native mysql2).
- * Tidak ada ORM.
- */
+
 
 'use strict';
 
@@ -19,15 +6,11 @@ const ExcelJS        = require('exceljs');
 const PDFDocument    = require('pdfkit');
 const penelitianRepo = require('../models/penelitianModel');
 
-// ─────────────────────────────────────────────
-//  HELPER
-// ─────────────────────────────────────────────
 
-/**
- * Normalkan nilai tahun: kembalikan integer atau null.
- * @param {*} val
- * @returns {number|null}
- */
+
+
+
+
 function parseTahun(val) {
   if (!val || val === '') return null;
   const parsed = parseInt(val, 10);
@@ -50,19 +33,13 @@ function redirectWithMessage(res, target, type, message) {
   return res.redirect(`${target}${separator}flash_type=${type}&flash_msg=${encoded}`);
 }
 
-// ─────────────────────────────────────────────
-//  VALIDASI INPUT (server-side)
-// ─────────────────────────────────────────────
+
+
+
 
 const STATUS_VALID = ['draft', 'aktif', 'selesai', 'ditolak'];
 
-/**
- * Validasi body form penelitian.
- * Mengembalikan array pesan error; kosong = valid.
- *
- * @param {object} body - req.body
- * @returns {string[]}
- */
+
 function validatePenelitianBody(body) {
   const errors = [];
   const { judul, tahun_mulai, tahun_selesai, status } = body;
@@ -97,14 +74,11 @@ function validatePenelitianBody(body) {
   return errors;
 }
 
-// ─────────────────────────────────────────────
-//  1. DASHBOARD – daftar penelitian user
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/dashboard
- * Menampilkan semua penelitian milik dosen yang sedang login.
- */
+
+
+
+
 async function showDashboard(req, res) {
   try {
     const flashType = req.query.flash_type || null;
@@ -126,14 +100,11 @@ async function showDashboard(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  2. DATA PENELITIAN SAYA
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/my-penelitian
- * Menampilkan penelitian yang dikelola oleh dosen yang login.
- */
+
+
+
+
 async function showMyPenelitian(req, res) {
   try {
     const flashType = req.query.flash_type || null;
@@ -156,10 +127,7 @@ async function showMyPenelitian(req, res) {
   }
 }
 
-/**
- * GET /penelitian/undangan
- * Menampilkan undangan keanggotaan penelitian untuk dosen anggota.
- */
+
 async function showInvitations(req, res) {
   try {
     const flashType = req.query.flash_type || null;
@@ -179,13 +147,11 @@ async function showInvitations(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  3. CREATE – form tambah & simpan
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/create
- */
+
+
+
+
 async function showCreateForm(req, res) {
   return res.render('penelitian/create', {
     user:   req.user,
@@ -194,9 +160,7 @@ async function showCreateForm(req, res) {
   });
 }
 
-/**
- * POST /penelitian/create
- */
+
 async function handleCreate(req, res) {
   const errors = validatePenelitianBody(req.body);
 
@@ -236,13 +200,11 @@ async function handleCreate(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  4. READ DETAIL
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/:id
- */
+
+
+
+
 async function showDetail(req, res) {
   try {
     const flashType = req.query.flash_type || null;
@@ -274,13 +236,11 @@ async function showDetail(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  5. UPDATE – form edit & simpan perubahan
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/:id/edit
- */
+
+
+
+
 async function showEditForm(req, res) {
   try {
     const penelitian = req.penelitian || await penelitianRepo.getPenelitianById(req.params.id);
@@ -299,16 +259,14 @@ async function showEditForm(req, res) {
   }
 }
 
-/**
- * POST /penelitian/:id/update
- */
+
 async function handleUpdate(req, res) {
   const errors = validatePenelitianBody(req.body);
   const penelitianId = req.params.id;
 
   if (errors.length > 0) {
     const penelitian = req.penelitian || await penelitianRepo.getPenelitianById(penelitianId);
-    // Gabungkan data lama dengan input baru agar form tidak kosong
+    
     const merged = { ...penelitian, ...req.body };
     return res.render('penelitian/edit', {
       user:      req.user,
@@ -346,13 +304,11 @@ async function handleUpdate(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  6. DELETE
-// ─────────────────────────────────────────────
 
-/**
- * POST /penelitian/:id/delete
- */
+
+
+
+
 async function handleDelete(req, res) {
   try {
     const penelitianId = req.params.id;
@@ -377,13 +333,11 @@ async function handleDelete(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  7. SEARCH
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/search?q=keyword&scope=all|mine
- */
+
+
+
+
 async function handleSearch(req, res) {
   try {
     const keyword = (req.query.q || '').trim();
@@ -408,14 +362,11 @@ async function handleSearch(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  8. IMPORT dari Excel
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/import
- * Tampilkan form upload file Excel.
- */
+
+
+
+
 async function showImportForm(req, res) {
   return res.render('penelitian/import', {
     user:   req.user,
@@ -424,16 +375,9 @@ async function showImportForm(req, res) {
   });
 }
 
-/**
- * POST /penelitian/import
- * Proses file Excel yang diunggah:
- *  1. Validasi ekstensi & MIME
- *  2. Parse setiap baris dengan ExcelJS
- *  3. Validasi per baris
- *  4. Bulk insert ke DB menggunakan prepared statements
- */
+
 async function handleImport(req, res) {
-  // Multer sudah meletakkan file di req.file
+  
   if (!req.file) {
     return res.render('penelitian/import', {
       user:   req.user,
@@ -442,10 +386,10 @@ async function handleImport(req, res) {
     });
   }
 
-  // ── Validasi MIME / ekstensi ──
+  
   const allowedMime = [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-    'application/vnd.ms-excel', // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+    'application/vnd.ms-excel', 
   ];
   if (!allowedMime.includes(req.file.mimetype)) {
     return res.render('penelitian/import', {
@@ -468,11 +412,11 @@ async function handleImport(req, res) {
       });
     }
 
-    // Kumpulkan baris (lewati header baris pertama)
+    
     const rows = [];
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // skip header
-      rows.push({ rowNumber, values: row.values }); // values[0] = undefined (1-indexed)
+      if (rowNumber === 1) return; 
+      rows.push({ rowNumber, values: row.values }); 
     });
 
     if (rows.length === 0) {
@@ -483,12 +427,12 @@ async function handleImport(req, res) {
       });
     }
 
-    // ── Parse & validasi per baris ──
+    
     const validRows   = [];
     const errorRows   = [];
 
     for (const { rowNumber, values } of rows) {
-      // Kolom: A=judul, B=deskripsi, C=tahun_mulai, D=tahun_selesai, E=status
+      
       const judul        = values[1] ? String(values[1]).trim() : '';
       const deskripsi    = values[2] ? String(values[2]).trim() : null;
       const tahun_mulai  = parseTahun(values[3]);
@@ -519,7 +463,7 @@ async function handleImport(req, res) {
       }
     }
 
-    // ── Bulk insert via model (tabel research / research_members) ──
+    
     let insertedCount = 0;
 
     for (const row of validRows) {
@@ -550,14 +494,11 @@ async function handleImport(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  9. EXPORT – Excel & PDF
-// ─────────────────────────────────────────────
 
-/**
- * GET /penelitian/export/excel
- * Ekspor seluruh data penelitian milik dosen ke file .xlsx
- */
+
+
+
+
 async function exportExcel(req, res) {
   try {
     const dosenId = req.user.role === 'admin' ? null : req.user.id;
@@ -571,7 +512,7 @@ async function exportExcel(req, res) {
 
     const sheet = workbook.addWorksheet('Data Penelitian');
 
-    // ── Header kolom ──
+    
     sheet.columns = [
       { header: 'No',            key: 'no',            width: 5  },
       { header: 'Judul',         key: 'judul',         width: 50 },
@@ -582,7 +523,7 @@ async function exportExcel(req, res) {
       { header: 'Deskripsi',     key: 'deskripsi',     width: 60 },
     ];
 
-    // Style header
+    
     sheet.getRow(1).eachCell(cell => {
       cell.font      = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
@@ -595,7 +536,7 @@ async function exportExcel(req, res) {
       };
     });
 
-    // ── Data baris ──
+    
     penelitianList.forEach((p, index) => {
       const row = sheet.addRow({
         no:            index + 1,
@@ -607,7 +548,7 @@ async function exportExcel(req, res) {
         deskripsi:     p.deskripsi || '-',
       });
 
-      // Warna alternating row
+      
       if (index % 2 === 0) {
         row.eachCell(cell => {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F9FF' } };
@@ -624,7 +565,7 @@ async function exportExcel(req, res) {
 
     sheet.getRow(1).height = 22;
 
-    // ── Kirim sebagai file download ──
+    
     const filename = `penelitian_${Date.now()}.xlsx`;
     res.setHeader('Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -638,10 +579,7 @@ async function exportExcel(req, res) {
   }
 }
 
-/**
- * GET /penelitian/export/pdf
- * Ekspor seluruh data penelitian milik dosen ke file .pdf
- */
+
 async function exportPdf(req, res) {
   try {
     const dosenId = req.user.role === 'admin' ? null : req.user.id;
@@ -656,27 +594,23 @@ async function exportPdf(req, res) {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     doc.pipe(res);
 
-    // ── Header PDF ──
+    
     doc.fontSize(16).font('Helvetica-Bold')
        .text('Data Penelitian – Sistem Informasi FTI', { align: 'center' });
     doc.fontSize(10).font('Helvetica')
        .text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, { align: 'center' });
     doc.moveDown(1);
 
-    // ── Kolom tabel ──
-    const colWidths = [25, 200, 110, 65, 70, 65, 60]; // total ≈ 595 landscape
+    
+    const colWidths = [25, 200, 110, 65, 70, 65, 60]; 
     const headers   = ['No', 'Judul', 'Ketua', 'Thn Mulai', 'Thn Selesai', 'Status', 'Total Anggota'];
     const rowHeight = 18;
     const startX    = doc.page.margins.left;
     let   y         = doc.y;
 
-    /**
-     * Gambar baris tabel (header atau data).
-     * @param {string[]} cells
-     * @param {boolean}  isHeader
-     */
+    
     function drawRow(cells, isHeader = false) {
-      // Background
+      
       if (isHeader) {
         doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
            .fill('#2563EB');
@@ -686,10 +620,10 @@ async function exportPdf(req, res) {
       cells.forEach((text, i) => {
         const w = colWidths[i];
 
-        // Border sel
+        
         doc.rect(x, y, w, rowHeight).stroke('#CBD5E1');
 
-        // Teks
+        
         doc.fillColor(isHeader ? '#FFFFFF' : '#1E293B')
            .fontSize(isHeader ? 8 : 7.5)
            .font(isHeader ? 'Helvetica-Bold' : 'Helvetica')
@@ -705,7 +639,7 @@ async function exportPdf(req, res) {
 
       y += rowHeight;
 
-      // Halaman baru jika hampir penuh
+      
       if (y > doc.page.height - doc.page.margins.bottom - rowHeight * 2) {
         doc.addPage();
         y = doc.page.margins.top;
@@ -734,14 +668,14 @@ async function exportPdf(req, res) {
     doc.end();
   } catch (err) {
     console.error('[Controller] exportPdf error:', err);
-    // Jika header belum dikirim, kirim JSON error
+    
     if (!res.headersSent) {
       return res.status(500).json({ error: 'Gagal mengekspor data ke PDF.' });
     }
   }
 }
 
-// ── Kelola Anggota ───────────────────────────────────────────────────────────
+
 
 async function showManageAnggota(req, res) {
   try {
@@ -848,7 +782,7 @@ async function exportAnggotaCsv(req, res) {
   }
 }
 
-// ── Exports ───────────────────────────────────────────────────────────────────
+
 
 module.exports = {
   showDashboard,

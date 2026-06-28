@@ -7,7 +7,7 @@ const { ROLES }      = require('../middleware/acl');
 const userModel      = require('../models/userModel');
 const penelitianRepo = require('../models/penelitianModel');
 
-// ── Register ─────────────────────────────────────────────────────────────────
+
 async function showRegister(req, res) {
   if (req.cookies.token) return res.redirect('/auth/dashboard');
   return res.render('auth/register', { error: null, success: null });
@@ -34,7 +34,7 @@ async function handleRegister(req, res) {
   }
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+
 async function showLogin(req, res) {
   if (req.cookies.token) return res.redirect('/auth/dashboard');
   const success = req.query.registered === '1'
@@ -89,13 +89,13 @@ async function handleLogin(req, res) {
   }
 }
 
-// ── Logout ────────────────────────────────────────────────────────────────────
+
 function handleLogout(req, res) {
   res.clearCookie('token');
   return res.redirect('/');
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+
 async function showDashboard(req, res) {
   try {
     const user = await userModel.getUser(req.user.email);
@@ -131,7 +131,7 @@ async function showDashboard(req, res) {
   }
 }
 
-// ── Page Not Found ────────────────────────────────────────────────────────────
+
 async function showPageNotFound(req, res) {
   try {
     const user = await userModel.getUser(req.user.email);
@@ -141,7 +141,7 @@ async function showPageNotFound(req, res) {
   }
 }
 
-// ── Profil ────────────────────────────────────────────────────────────────────
+
 async function showProfile(req, res) {
   try {
     const user = await userModel.getUserById(req.user.id);
@@ -179,7 +179,7 @@ async function handleProfile(req, res) {
 
     await userModel.updateUserProfile(user.id, { name, email, password: password || null });
 
-    // Refresh token jika email berubah
+    
     const newToken = jwt.sign(
       { id: user.id, email, role: user.role || ROLES.DOSEN },
       JWT_SECRET,
@@ -199,7 +199,7 @@ async function handleProfile(req, res) {
   }
 }
 
-// ── Kelola User (Admin only) ──────────────────────────────────────────────────
+
 async function showUsers(req, res) {
   try {
     const currentUser = await userModel.getUser(req.user.email);

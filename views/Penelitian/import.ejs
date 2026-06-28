@@ -3,7 +3,7 @@
 
 <div class="max-w-3xl mx-auto px-4 sm:px-0">
 
-  <!-- Breadcrumb -->
+  
   <nav class="text-sm text-slate-500 mb-6 flex items-center gap-2">
     <a href="/penelitian/my-penelitian" class="text-blue-600 hover:text-blue-700 font-medium">Data Penelitian</a>
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -20,7 +20,7 @@
     </div>
 
     <div class="p-6">
-      <!-- Hasil Import -->
+      
       <% if (result) { %>
         <div class="mb-6 p-4 rounded-xl border flex items-start gap-3 <%= result.skipped > 0 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200' %>">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5">
@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <!-- Detail baris error -->
+        
         <% if (result.errorRows && result.errorRows.length > 0) { %>
           <div class="mb-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
@@ -72,14 +72,14 @@
         </a>
       <% } %>
 
-      <!-- Form Upload -->
+      
       <form method="POST" action="/penelitian/import" enctype="multipart/form-data" id="importForm">
         <div class="mb-6">
           <label for="file_excel" class="block text-sm font-semibold text-slate-900 mb-2">
             Pilih File Excel <span class="text-red-500">*</span>
           </label>
 
-          <!-- Drop Zone -->
+          
           <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all" onclick="document.getElementById('file_excel').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
             <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-slate-400">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
@@ -106,7 +106,7 @@
     </div>
   </div>
 
-  <!-- Panduan Format -->
+  
   <div class="card-premium overflow-hidden">
     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
       <h3 class="text-base font-bold text-slate-900 m-0">Format File Excel</h3>

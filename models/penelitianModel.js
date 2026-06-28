@@ -43,7 +43,7 @@ function mapMembershipRole(role) {
   return role;
 }
 
-// ── Ambil semua penelitian ───────────────────────────────────────────────────
+
 async function getAllPenelitian() {
   const [rows] = await db.query(`
     SELECT
@@ -65,7 +65,7 @@ async function getAllPenelitian() {
   return rows.map(mapPenelitianRow);
 }
 
-// ── Ambil penelitian berdasarkan dosen (ketua atau anggota) ─────────────────
+
 async function getPenelitianByDosenId(dosenId) {
   const [rows] = await db.query(`
     SELECT DISTINCT
@@ -91,7 +91,7 @@ async function getPenelitianByDosenId(dosenId) {
   return rows.map(mapPenelitianRow);
 }
 
-// ── Ambil undangan penelitian yang menunggu konfirmasi ─────────────────────
+
 async function getPendingInvitations(dosenId) {
   const [rows] = await db.query(`
     SELECT
@@ -118,7 +118,7 @@ async function getPendingInvitations(dosenId) {
   }));
 }
 
-// ── Ambil statistik penelitian ───────────────────────────────────────────────
+
 async function getPenelitianStats(dosenId = null) {
   const list = dosenId
     ? await getPenelitianByDosenId(dosenId)
@@ -136,7 +136,7 @@ async function getPenelitianStats(dosenId = null) {
   };
 }
 
-// ── Ambil satu penelitian berdasarkan ID ────────────────────────────────────
+
 async function getPenelitianById(penelitianId) {
   const [rows] = await db.query(`
     SELECT
@@ -155,7 +155,7 @@ async function getPenelitianById(penelitianId) {
   return mapPenelitianRow(rows[0]);
 }
 
-// ── Ambil daftar anggota penelitian ─────────────────────────────────────────
+
 async function getAnggotaPenelitian(penelitianId) {
   const [rows] = await db.query(`
     SELECT
@@ -177,7 +177,7 @@ async function getAnggotaPenelitian(penelitianId) {
   }));
 }
 
-// ── Cek apakah user adalah ketua ────────────────────────────────────────────
+
 async function isKetuaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
     'SELECT id FROM research_members WHERE research_id = ? AND lecturer_id = ? AND role = ?',
@@ -186,7 +186,7 @@ async function isKetuaPenelitian(penelitianId, userId) {
   return rows.length > 0;
 }
 
-// ── Cek apakah user adalah anggota ──────────────────────────────────────────
+
 async function isAnggotaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
     'SELECT id FROM research_members WHERE research_id = ? AND lecturer_id = ?',
@@ -195,7 +195,7 @@ async function isAnggotaPenelitian(penelitianId, userId) {
   return rows.length > 0;
 }
 
-// ── Ambil role user dalam penelitian ────────────────────────────────────────
+
 async function getUserRoleInPenelitian(penelitianId, userId) {
   const [rows] = await db.query(
     'SELECT role FROM research_members WHERE research_id = ? AND lecturer_id = ?',
@@ -208,7 +208,7 @@ async function getUserRoleInPenelitian(penelitianId, userId) {
   };
 }
 
-// ── Buat penelitian baru ─────────────────────────────────────────────────────
+
 async function createPenelitian(data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id } = data;
 
@@ -247,7 +247,7 @@ async function createPenelitian(data) {
   }
 }
 
-// ── Update data penelitian ───────────────────────────────────────────────────
+
 async function updatePenelitian(penelitianId, data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status } = data;
 
@@ -264,7 +264,7 @@ async function updatePenelitian(penelitianId, data) {
   return result.affectedRows > 0;
 }
 
-// ── Hapus penelitian ─────────────────────────────────────────────────────────
+
 async function deletePenelitian(penelitianId) {
   const conn = await db.getConnection();
   try {
@@ -281,7 +281,7 @@ async function deletePenelitian(penelitianId) {
   }
 }
 
-// ── Tambah anggota ke penelitian ─────────────────────────────────────────────
+
 async function addAnggotaPenelitian(penelitianId, dosenId) {
   const conn = await db.getConnection();
   try {
@@ -304,7 +304,7 @@ async function addAnggotaPenelitian(penelitianId, dosenId) {
   }
 }
 
-// ── Update status keanggotaan (approve / reject) ─────────────────────────────
+
 async function updateStatusAnggota(penelitianId, dosenId, status) {
   if (status === 'approved') {
     const [result] = await db.query(
@@ -328,7 +328,7 @@ async function updateStatusAnggota(penelitianId, dosenId, status) {
   return false;
 }
 
-// ── Hapus anggota dari penelitian ────────────────────────────────────────────
+
 async function removeAnggotaPenelitian(penelitianId, dosenId) {
   const [result] = await db.query(
     `DELETE FROM research_members
@@ -338,7 +338,7 @@ async function removeAnggotaPenelitian(penelitianId, dosenId) {
   return result.affectedRows > 0;
 }
 
-// ── Cari penelitian berdasarkan keyword ─────────────────────────────────────
+
 async function searchPenelitian(keyword, dosenId = null) {
   let query = `
     SELECT DISTINCT
@@ -370,7 +370,7 @@ async function searchPenelitian(keyword, dosenId = null) {
   return rows.map(mapPenelitianRow);
 }
 
-// ── Ambil semua dosen (untuk dropdown tambah anggota) ───────────────────────
+
 async function getAllDosen() {
   const [rows] = await db.query(`
     SELECT u.id, u.name, u.email
@@ -384,7 +384,7 @@ async function getAllDosen() {
   return rows;
 }
 
-// ── Ambil dosen yang belum terdaftar di penelitian tertentu ─────────────────
+
 async function getAvailableDosen(penelitianId) {
   const [rows] = await db.query(
     `SELECT u.id, u.name, u.email

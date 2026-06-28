@@ -11,10 +11,6 @@ function resolveRole(req) {
   return (req.user && req.user.role) ? req.user.role.toLowerCase() : ROLES.DOSEN;
 }
 
-/**
- * Middleware: Batasi akses berdasarkan role.
- * Contoh: checkRole(ROLES.DOSEN, ROLES.ADMIN)
- */
 function checkRole(...allowedRoles) {
   const allowed = allowedRoles.flat().map(r => r.toLowerCase());
 
@@ -37,10 +33,6 @@ function checkRole(...allowedRoles) {
   };
 }
 
-/**
- * Middleware: Pastikan user adalah ketua penelitian (atau admin).
- * Menyimpan data penelitian ke req.penelitian jika lolos.
- */
 async function checkOwnership(req, res, next) {
   try {
     const role = resolveRole(req);
@@ -68,9 +60,6 @@ async function checkOwnership(req, res, next) {
   }
 }
 
-/**
- * Middleware: Pastikan user adalah anggota penelitian (atau admin).
- */
 async function checkAnggotaSelf(req, res, next) {
   try {
     const role = resolveRole(req);
@@ -93,9 +82,6 @@ async function checkAnggotaSelf(req, res, next) {
   }
 }
 
-/**
- * Middleware: Izinkan ketua, anggota, dan admin untuk melihat detail penelitian.
- */
 async function checkCanView(req, res, next) {
   try {
     const role = resolveRole(req);

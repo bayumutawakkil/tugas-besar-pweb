@@ -13,7 +13,7 @@ function normalizeUser(row) {
   };
 }
 
-// ── Baca satu user berdasarkan email ────────────────────────────────────────
+
 async function getUser(email) {
   const conn = await db.getConnection();
   try {
@@ -33,7 +33,7 @@ async function getUser(email) {
   }
 }
 
-// ── Baca satu user berdasarkan ID ───────────────────────────────────────────
+
 async function getUserById(id) {
   const conn = await db.getConnection();
   try {
@@ -53,7 +53,7 @@ async function getUserById(id) {
   }
 }
 
-// ── Buat user baru ───────────────────────────────────────────────────────────
+
 async function createUser(email, password, name, role = 'dosen') {
   const hashedPassword = await bcrypt.hash(password, 10);
   const conn = await db.getConnection();
@@ -90,7 +90,7 @@ async function createUser(email, password, name, role = 'dosen') {
   }
 }
 
-// ── Ambil semua user ─────────────────────────────────────────────────────────
+
 async function getAllUsers() {
   const conn = await db.getConnection();
   try {
@@ -111,7 +111,7 @@ async function getAllUsers() {
   }
 }
 
-// ── Cari user berdasarkan nama atau email ────────────────────────────────────
+
 async function searchUsers(keyword) {
   const conn = await db.getConnection();
   try {
@@ -133,7 +133,7 @@ async function searchUsers(keyword) {
   }
 }
 
-// ── Update role user ─────────────────────────────────────────────────────────
+
 async function updateUserRole(userId, role) {
   const validRoles = ['admin', 'dosen'];
   if (!validRoles.includes(role)) throw new Error('Role tidak valid');
@@ -161,7 +161,7 @@ async function updateUserRole(userId, role) {
   }
 }
 
-// ── Update profil user (nama, email, password opsional) ──────────────────────
+
 async function updateUserProfile(userId, { name, email, password }) {
   const conn = await db.getConnection();
   try {
@@ -189,7 +189,7 @@ async function updateUserProfile(userId, { name, email, password }) {
   }
 }
 
-// ── Update status akun (aktif / nonaktif) ────────────────────────────────────
+
 async function updateUserStatus(id, status) {
   const validStatus = ['aktif', 'nonaktif'];
   if (!validStatus.includes(status)) throw new Error('Status tidak valid');
@@ -211,23 +211,23 @@ async function updateUserStatus(id, status) {
   }
 }
 
-// ── Hapus user ───────────────────────────────────────────────────────────────
+
 async function deleteUser(id) {
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // Hapus relasi role (Spatie)
+    
     await conn.execute('DELETE FROM model_has_roles WHERE model_id = ? AND model_type = ?', [id, MODEL_TYPE]);
     
-    // Hapus keikutsertaan penelitian jika ada
+    
     await conn.execute('DELETE FROM research_members WHERE lecturer_id = ?', [id]);
 
-    // Hapus profil spesifik
+    
     await conn.execute('DELETE FROM lecturers WHERE id = ?', [id]);
     await conn.execute('DELETE FROM employees WHERE id = ?', [id]);
 
-    // Terakhir, hapus data user
+    
     const [result] = await conn.execute(
       'DELETE FROM users WHERE id = ?',
       [id]

@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Middleware: Cegah manipulasi ID penelitian dari request body.
- * Jika params.id dan body.penelitian_id keduanya ada, keduanya harus sama.
- */
 function preventIdManipulation(req, res, next) {
   const paramId = req.params.id;
   const bodyId  = req.body.penelitian_id;
@@ -14,7 +10,7 @@ function preventIdManipulation(req, res, next) {
     });
   }
 
-  // Cegah penggantian ketua_id melalui body pada operasi update
+  
   if (req.body.ketua_id && req.method !== 'POST') {
     delete req.body.ketua_id;
   }
@@ -22,10 +18,6 @@ function preventIdManipulation(req, res, next) {
   next();
 }
 
-/**
- * Middleware: Validasi data penelitian dari form.
- * Mengembalikan JSON 400 jika data tidak valid.
- */
 function validatePenelitianData(req, res, next) {
   const { judul, tahun_mulai, tahun_selesai } = req.body;
   const currentYear = new Date().getFullYear();

@@ -1,10 +1,8 @@
 const db = require('./database');
 
-// ===== PENELITIAN QUERIES =====
 
-/**
- * Get all penelitian (untuk dashboard - semua dosen bisa lihat)
- */
+
+
 async function getAllPenelitian() {
   const [rows] = await db.query(`
     SELECT 
@@ -22,9 +20,7 @@ async function getAllPenelitian() {
   return rows;
 }
 
-/**
- * Get penelitian by dosen ID (penelitian yang dosen terlibat sebagai ketua atau anggota)
- */
+
 async function getPenelitianByDosenId(dosenId) {
   const [rows] = await db.query(`
     SELECT DISTINCT
@@ -46,9 +42,7 @@ async function getPenelitianByDosenId(dosenId) {
   return rows;
 }
 
-/**
- * Get penelitian by ID with full details
- */
+
 async function getPenelitianById(penelitianId) {
   const [rows] = await db.query(`
     SELECT 
@@ -62,9 +56,7 @@ async function getPenelitianById(penelitianId) {
   return rows[0];
 }
 
-/**
- * Get anggota penelitian by penelitian ID
- */
+
 async function getAnggotaPenelitian(penelitianId) {
   const [rows] = await db.query(`
     SELECT 
@@ -79,9 +71,7 @@ async function getAnggotaPenelitian(penelitianId) {
   return rows;
 }
 
-/**
- * Check if user is ketua of penelitian
- */
+
 async function isKetuaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(`
     SELECT id FROM penelitian WHERE id = ? AND ketua_id = ?
@@ -89,9 +79,7 @@ async function isKetuaPenelitian(penelitianId, userId) {
   return rows.length > 0;
 }
 
-/**
- * Check if user is anggota of penelitian
- */
+
 async function isAnggotaPenelitian(penelitianId, userId) {
   const [rows] = await db.query(`
     SELECT id FROM penelitian_anggota 
@@ -100,9 +88,7 @@ async function isAnggotaPenelitian(penelitianId, userId) {
   return rows.length > 0;
 }
 
-/**
- * Get user role in penelitian
- */
+
 async function getUserRoleInPenelitian(penelitianId, userId) {
   const [rows] = await db.query(`
     SELECT role, status FROM penelitian_anggota 
@@ -111,9 +97,7 @@ async function getUserRoleInPenelitian(penelitianId, userId) {
   return rows[0];
 }
 
-/**
- * Create new penelitian
- */
+
 async function createPenelitian(data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id } = data;
   
@@ -121,7 +105,7 @@ async function createPenelitian(data) {
   try {
     await connection.beginTransaction();
     
-    // Insert penelitian
+    
     const [result] = await connection.query(`
       INSERT INTO penelitian (judul, deskripsi, tahun_mulai, tahun_selesai, status, ketua_id)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -129,7 +113,7 @@ async function createPenelitian(data) {
     
     const penelitianId = result.insertId;
     
-    // Auto-add ketua as anggota with approved status
+    
     await connection.query(`
       INSERT INTO penelitian_anggota (penelitian_id, dosen_id, role, status)
       VALUES (?, ?, 'Ketua', 'approved')
@@ -145,9 +129,7 @@ async function createPenelitian(data) {
   }
 }
 
-/**
- * Update penelitian (only ketua can update)
- */
+
 async function updatePenelitian(penelitianId, data) {
   const { judul, deskripsi, tahun_mulai, tahun_selesai, status } = data;
   
@@ -160,9 +142,7 @@ async function updatePenelitian(penelitianId, data) {
   return result.affectedRows > 0;
 }
 
-/**
- * Delete penelitian (only ketua can delete)
- */
+
 async function deletePenelitian(penelitianId) {
   const [result] = await db.query(`
     DELETE FROM penelitian WHERE id = ?
@@ -171,9 +151,7 @@ async function deletePenelitian(penelitianId) {
   return result.affectedRows > 0;
 }
 
-/**
- * Add anggota to penelitian (only ketua can add)
- */
+
 async function addAnggotaPenelitian(penelitianId, dosenId) {
   try {
     const [result] = await db.query(`
@@ -190,9 +168,7 @@ async function addAnggotaPenelitian(penelitianId, dosenId) {
   }
 }
 
-/**
- * Update status anggota (approve/reject by anggota themselves)
- */
+
 async function updateStatusAnggota(penelitianId, dosenId, status) {
   const [result] = await db.query(`
     UPDATE penelitian_anggota 
@@ -203,9 +179,7 @@ async function updateStatusAnggota(penelitianId, dosenId, status) {
   return result.affectedRows > 0;
 }
 
-/**
- * Remove anggota from penelitian (only ketua can remove)
- */
+
 async function removeAnggotaPenelitian(penelitianId, dosenId) {
   const [result] = await db.query(`
     DELETE FROM penelitian_anggota 
@@ -215,9 +189,7 @@ async function removeAnggotaPenelitian(penelitianId, dosenId) {
   return result.affectedRows > 0;
 }
 
-/**
- * Search penelitian by keyword
- */
+
 async function searchPenelitian(keyword, dosenId = null) {
   let query = `
     SELECT DISTINCT
@@ -245,9 +217,7 @@ async function searchPenelitian(keyword, dosenId = null) {
   return rows;
 }
 
-/**
- * Get all dosen (for adding anggota)
- */
+
 async function getAllDosen() {
   const [rows] = await db.query(`
     SELECT id, name, email FROM users ORDER BY name
@@ -255,9 +225,7 @@ async function getAllDosen() {
   return rows;
 }
 
-/**
- * Get available dosen (not yet in penelitian)
- */
+
 async function getAvailableDosen(penelitianId) {
   const [rows] = await db.query(`
     SELECT u.id, u.name, u.email 

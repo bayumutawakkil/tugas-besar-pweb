@@ -5,7 +5,7 @@ const jwt     = require('jsonwebtoken');
 const { JWT_SECRET } = require('../middleware/auth');
 const router  = express.Router();
 
-// ── Landing Page ──────────────────────────────────────────────────────────────
+
 router.get('/', (req, res) => {
   const token = req.cookies.token;
   if (token) {
@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
   return res.render('index', { isLoggedIn: false });
 });
 
-// ── Health Check ──────────────────────────────────────────────────────────────
+
 router.get('/health', (_req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
 });

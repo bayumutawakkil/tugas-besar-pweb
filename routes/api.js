@@ -4,7 +4,7 @@ const express = require('express');
 const router  = express.Router();
 const penelitianRepo = require('../models/penelitianModel');
 
-// Endpoint API untuk mendapatkan semua data penelitian
+
 router.get('/penelitian', async (req, res) => {
   try {
     const penelitianList = await penelitianRepo.getAllPenelitian();
@@ -23,7 +23,7 @@ router.get('/penelitian', async (req, res) => {
   }
 });
 
-// Endpoint API sederhana untuk cek status server
+
 router.get('/status', (req, res) => {
   res.json({
     status: 'success',

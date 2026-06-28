@@ -1,14 +1,11 @@
 
 
-/**
- * Middleware: Prevent ID manipulation
- * Ensure user cannot manipulate penelitian_id in request
- */
+
 function preventIdManipulation(req, res, next) {
   const penelitianIdParam = req.params.id;
   const penelitianIdBody = req.body.penelitian_id;
   
-  // If both exist, they must match
+  
   if (penelitianIdParam && penelitianIdBody) {
     if (penelitianIdParam !== penelitianIdBody) {
       return res.status(400).json({ 
@@ -17,7 +14,7 @@ function preventIdManipulation(req, res, next) {
     }
   }
   
-  // Prevent changing ketua_id in update
+  
   if (req.body.ketua_id && req.method !== 'POST') {
     delete req.body.ketua_id;
   }
@@ -25,9 +22,7 @@ function preventIdManipulation(req, res, next) {
   next();
 }
 
-/**
- * Middleware: Validate penelitian data
- */
+
 function validatePenelitianData(req, res, next) {
   const { judul, tahun_mulai } = req.body;
   
@@ -52,7 +47,7 @@ function validatePenelitianData(req, res, next) {
     });
   }
   
-  // Validate tahun_selesai if provided
+  
   if (req.body.tahun_selesai) {
     const tahunSelesai = parseInt(req.body.tahun_selesai);
     
